@@ -156,6 +156,13 @@ tr:hover td{background:#faf9f6}
 </div>
 
 <script>
+// ── CONFIG — update this after uploading prices.json to GitHub ──
+// Paste the raw URL to your prices.json here.
+// In GitHub: open prices.json → click "Raw" → copy the URL
+// It looks like: https://raw.githubusercontent.com/YOUR-USERNAME/mons-price-monitor/main/prices.json
+const PRICES_URL = '';
+// ───────────────────────────────────────────────────────────────
+
 // ── DUMMY DATA ────────────────────────────────────────────────
 const DUMMY = [
   // Run 1 — 2025-04-14
@@ -187,6 +194,39 @@ let sortCol = 'worst_disc_pct';
 let sortDir = -1;
 
 // ── FILE LOAD ─────────────────────────────────────────────────
+// ── DATA LOADING ──────────────────────────────────────────────
+async function autoLoad() {
+  // Try GitHub URL first if configured
+  if (PRICES_URL) {
+    try {
+      const res = await fetch(PRICES_URL + '?t=' + Date.now()); // bust cache
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          allData = data; isDummy = false; render(); return;
+        }
+      }
+    } catch(e) {}
+  }
+  // No URL configured or fetch failed — show load screen
+  showLoadScreen();
+}
+
+function showLoadScreen() {
+  document.getElementById('app').innerHTML = `
+    <div class="load-screen">
+      <div class="load-box">
+        <h2>Price Monitor</h2>
+        <p>Load <strong>prices.json</strong> from your computer, or preview with dummy data.</p>
+        <button class="load-primary" onclick="document.getElementById('file-input').click()">Load prices.json</button>
+        <input type="file" id="file-input" accept=".json" style="display:none" onchange="handleFile(this)">
+        <br><br>
+        <button class="load-primary" style="background:#555" onclick="loadDummy()">Preview with dummy data</button>
+        <p class="load-note">File stays on your computer. Nothing is uploaded.</p>
+      </div>
+    </div>`;
+}
+
 function handleFile(input) {
   const file = input.files[0];
   if (!file) return;
@@ -431,6 +471,9 @@ function exportCSV() {
   a.download='mons-prices-'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
+
+// Start
+autoLoad();
 </script>
 </body>
 </html>
