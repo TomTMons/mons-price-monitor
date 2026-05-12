@@ -1,0 +1,10 @@
+{
+  "name": "mons-price-scraper",
+  "version": "1.0.0",
+  "description": "Price monitor for Mons Royale SKUs on Bergfreunde and Bergzeit",
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.44.0",
+    "csv-writer": "^1.6.0"
+  }
+}

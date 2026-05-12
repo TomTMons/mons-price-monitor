@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mons Royale — Retailer Price Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0a0a0a;--paper:#f5f3ef;--card:#ffffff;--rule:#e2dfd8;--mid:#ece9e3;
+  --ghost:#9b9690;--dim:#6b6762;
+  --red:#b83232;--red-tint:#fdf1f1;--red-mid:#f5d0d0;
+  --amber:#b06a10;--amber-tint:#fdf6ee;--amber-mid:#f5dfc0;
+  --green:#1e6e42;--green-tint:#eef7f2;--green-mid:#c0e4cf;
+  --blue:#1a5296;--blue-tint:#eef3fb;--blue-mid:#c0d4f0;
+  --purple:#6b3fa0;--purple-tint:#f4f0fb;--purple-mid:#d8c8f5;
+  --font-head:'Syne',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --r:4px;
+}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:13px;line-height:1.5;min-height:100vh}
+
+/* HEADER */
+header{background:var(--ink);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.h-brand{font-family:var(--font-head);font-size:14px;font-weight:700;color:#fff;letter-spacing:0.04em}
+.h-pipe{width:1px;height:16px;background:#2a2a2a;margin:0 16px}
+.h-title{font-size:12px;color:#666;font-weight:300;font-family:var(--font-body)}
+.h-right{display:flex;align-items:center;gap:16px}
+.h-meta{font-family:var(--font-mono);font-size:10px;color:#444}
+.h-load-btn{font-family:var(--font-mono);font-size:10px;padding:5px 12px;border:1px solid #333;border-radius:var(--r);background:none;color:#888;cursor:pointer;transition:all .15s}
+.h-load-btn:hover{border-color:#666;color:#ccc}
+
+/* LAYOUT */
+.page{max-width:1400px;margin:0 auto;padding:28px 32px 80px}
+
+/* LOAD SCREEN */
+.load-screen{display:flex;align-items:center;justify-content:center;min-height:70vh}
+.load-box{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:48px;text-align:center;max-width:400px}
+.load-box h2{font-family:var(--font-head);font-size:20px;font-weight:600;margin-bottom:10px}
+.load-box p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:24px}
+.load-primary{font-family:var(--font-head);font-size:13px;font-weight:600;padding:10px 24px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);cursor:pointer;transition:background .15s;letter-spacing:0.03em}
+.load-primary:hover{background:#222}
+.load-note{font-family:var(--font-mono);font-size:10px;color:var(--ghost);margin-top:14px}
+
+/* DEMO BANNER */
+.demo-banner{background:var(--purple-tint);border:1px solid var(--purple-mid);border-radius:var(--r);padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--purple)}
+.demo-badge{font-family:var(--font-mono);font-size:10px;font-weight:500;background:var(--purple);color:#fff;padding:2px 8px;border-radius:2px;flex-shrink:0}
+
+/* ALERT BANNER */
+.sale-alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.sale-alert{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--r);border:1px solid;font-size:12px}
+.sale-alert.critical{background:var(--red-tint);border-color:var(--red-mid);color:var(--red)}
+.sale-alert.warning{background:var(--amber-tint);border-color:var(--amber-mid);color:var(--amber)}
+.sale-icon{font-size:14px;flex-shrink:0}
+.sale-text strong{font-weight:500}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px 18px 14px;position:relative;overflow:hidden}
+.stat-stripe{position:absolute;top:0;left:0;right:0;height:3px}
+.stat-label{font-family:var(--font-mono);font-size:10px;color:var(--ghost);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em}
+.stat-val{font-family:var(--font-head);font-size:26px;font-weight:700;line-height:1;margin-bottom:3px}
+.stat-sub{font-size:11px;color:var(--dim)}
+.col-red{color:var(--red)}.col-amber{color:var(--amber)}.col-green{color:var(--green)}.col-blue{color:var(--blue)}.col-purple{color:var(--purple)}
+.stripe-red{background:var(--red)}.stripe-amber{background:var(--amber)}.stripe-green{background:var(--green)}.stripe-blue{background:var(--blue)}.stripe-purple{background:var(--purple)}.stripe-ghost{background:var(--ghost)}
+
+/* SECTION */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;margin-top:28px}
+.section-label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ghost)}
+.section-actions{display:flex;gap:8px;align-items:center}
+
+/* WARNING TABLE */
+.warn-table-wrap{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-bottom:4px}
+.warn-table{width:100%;border-collapse:collapse;font-size:12px}
+.warn-table th{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ghost);padding:9px 14px;text-align:left;background:var(--mid);border-bottom:1px solid var(--rule)}
+.warn-table td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
+.warn-table tr:last-child td{border-bottom:none}
+.warn-table tr:hover td{background:#faf9f6}
+
+/* MAIN TABLE */
+.filter-row{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.pill{font-family:var(--font-mono);font-size:10px;padding:4px 11px;border:1px solid var(--rule);border-radius:20px;background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em}
+.pill:hover{border-color:var(--ink);color:var(--ink)}
+.pill.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.search-box{font-family:var(--font-mono);font-size:11px;padding:5px 12px;border:1px solid var(--rule);border-radius:20px;background:var(--card);color:var(--ink);outline:none;width:200px;margin-left:auto}
+.search-box:focus{border-color:var(--ink)}
+
+.table-wrap{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--mid);border-bottom:1px solid var(--rule)}
+th{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ghost);padding:9px 14px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--ink)}
+td{padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:middle;color:var(--ink)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf9f6}
+.td-name{font-weight:500;max-width:200px}
+.td-mono{font-family:var(--font-mono);font-size:11px}
+.td-dim{font-family:var(--font-mono);font-size:11px;color:var(--dim)}
+.td-ghost{font-family:var(--font-mono);font-size:11px;color:var(--ghost)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:2px;white-space:nowrap;gap:3px}
+.b-critical{background:var(--red-tint);color:var(--red);border:1px solid var(--red-mid)}
+.b-warning{background:var(--amber-tint);color:var(--amber);border:1px solid var(--amber-mid)}
+.b-ok{background:var(--green-tint);color:var(--green);border:1px solid var(--green-mid)}
+.b-neutral{background:var(--mid);color:var(--ghost);border:1px solid var(--rule)}
+.b-current{background:var(--blue-tint);color:var(--blue);border:1px solid var(--blue-mid)}
+.b-rollover{background:var(--amber-tint);color:var(--amber);border:1px solid var(--amber-mid)}
+.b-archive{background:var(--mid);color:var(--ghost);border:1px solid var(--rule)}
+
+/* RANGE DOT */
+.range-dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-current{background:var(--blue)}
+.dot-rollover{background:var(--amber)}
+.dot-archive{background:var(--ghost)}
+
+/* BUTTONS */
+.btn{font-family:var(--font-mono);font-size:10px;padding:5px 12px;border:1px solid var(--rule);border-radius:var(--r);background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em}
+.btn:hover{border-color:var(--ink);color:var(--ink)}
+.btn-sm{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border:none;border-radius:2px;background:none;color:var(--ghost);cursor:pointer;text-decoration:underline}
+.btn-sm:hover{color:var(--ink)}
+
+/* NO DATA */
+.no-data{text-align:center;padding:40px;color:var(--ghost);font-family:var(--font-mono);font-size:11px}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center">
+    <span class="h-brand">MONS ROYALE</span>
+    <div class="h-pipe"></div>
+    <span class="h-title">Retailer Price Monitor</span>
+  </div>
+  <div class="h-right">
+    <span class="h-meta" id="last-run-label">No data loaded</span>
+    <button class="h-load-btn" onclick="document.getElementById('file-reload').click()">Load prices.json</button>
+    <input type="file" id="file-reload" accept=".json" style="display:none" onchange="handleFile(this)">
+  </div>
+</header>
+
+<div class="page" id="app">
+  <div class="load-screen">
+    <div class="load-box">
+      <h2>Price Monitor</h2>
+      <p>Select <strong>prices.json</strong> from your mons-price-scraper folder, or load dummy data to preview the dashboard.</p>
+      <button class="load-primary" onclick="loadDummy()">Preview with dummy data</button>
+      <br><br>
+      <button class="load-primary" style="background:#333" onclick="document.getElementById('file-input').click()">Load prices.json</button>
+      <input type="file" id="file-input" accept=".json" style="display:none" onchange="handleFile(this)">
+      <p class="load-note">Files stay on your computer. Nothing is uploaded.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DUMMY DATA ────────────────────────────────────────────────
+const DUMMY = [
+  // Run 1 — 2025-04-14
+  {date:"2025-04-14",name:"Cascade Merino Base Layer Long Sleeve (men's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:79.95,bfeu_disc_pct:27,bz_price:87.96,bz_disc_pct:20,va_price:null,va_disc_pct:null,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Cascade Merino Base Layer Long Sleeve (women's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:79.95,bfeu_disc_pct:27,bz_price:null,bz_disc_pct:null,va_price:87.96,va_disc_pct:20,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Cascade Merino Base Layer 3/4 Legging (men's)",category:"Base layer",range:"rollover",rrp:89.95,bf_price:70.16,bf_disc_pct:22,bfeu_price:71.95,bfeu_disc_pct:20,bz_price:71.96,bz_disc_pct:20,va_price:73.95,va_disc_pct:18,worst_price:70.16,worst_disc_pct:22,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Icon Merino Long Sleeve (men's)",category:"Base layer",range:"new",rrp:89.95,bf_price:62.97,bf_disc_pct:30,bfeu_price:62.97,bfeu_disc_pct:30,bz_price:67.45,bz_disc_pct:25,va_price:64.95,va_disc_pct:28,worst_price:62.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Tarn Merino Long Sleeve (men's)",category:"Base layer",range:"new",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:76.97,bfeu_disc_pct:30,bz_price:82.46,bz_disc_pct:25,va_price:null,va_disc_pct:null,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Bella Merino Long Sleeve Hood (women's)",category:"Base layer",range:"new",rrp:119.95,bf_price:93.56,bf_disc_pct:22,bfeu_price:95.95,bfeu_disc_pct:20,bz_price:null,bz_disc_pct:null,va_price:97.95,va_disc_pct:18,worst_price:93.56,worst_disc_pct:22,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Diversion Merino Wind Jacket (men's)",category:"Outerwear",range:"new",rrp:199.95,bf_price:139.97,bf_disc_pct:30,bfeu_price:139.97,bfeu_disc_pct:30,bz_price:149.96,bz_disc_pct:25,va_price:159.95,va_disc_pct:20,worst_price:139.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Canyon Merino Insulated Hooded Jacket (men's)",category:"Outerwear",range:"rollover",rrp:319.95,bf_price:255.96,bf_disc_pct:20,bfeu_price:255.96,bfeu_disc_pct:20,bz_price:271.96,bz_disc_pct:15,va_price:null,va_disc_pct:null,worst_price:255.96,worst_disc_pct:20,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Cascade Merino Base Layer Legging (men's)",category:"Base layer",range:"rollover",rrp:99.95,bf_price:59.98,bf_disc_pct:40,bfeu_price:62.95,bfeu_disc_pct:37,bz_price:74.97,bz_disc_pct:25,va_price:69.95,va_disc_pct:30,worst_price:59.98,worst_disc_pct:40,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-14",name:"Cascade Merino Base Layer Legging (women's)",category:"Base layer",range:"rollover",rrp:99.95,bf_price:51.98,bf_disc_pct:48,bfeu_price:51.98,bfeu_disc_pct:48,bz_price:64.97,bz_disc_pct:35,va_price:null,va_disc_pct:null,worst_price:51.98,worst_disc_pct:48,worst_retailer:"Bergfreunde DE"},
+  // Run 2 — 2025-04-28
+  {date:"2025-04-28",name:"Cascade Merino Base Layer Long Sleeve (men's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:79.95,bfeu_disc_pct:27,bz_price:87.96,bz_disc_pct:20,va_price:null,va_disc_pct:null,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-28",name:"Cascade Merino Base Layer Long Sleeve (women's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:71.47,bf_disc_pct:35,bfeu_price:74.95,bfeu_disc_pct:32,bz_price:null,bz_disc_pct:null,va_price:83.96,va_disc_pct:24,worst_price:71.47,worst_disc_pct:35,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-28",name:"Diversion Merino Wind Jacket (men's)",category:"Outerwear",range:"new",rrp:199.95,bf_price:119.97,bf_disc_pct:40,bfeu_price:129.97,bfeu_disc_pct:35,bz_price:139.96,bz_disc_pct:30,va_price:149.95,va_disc_pct:25,worst_price:119.97,worst_disc_pct:40,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-28",name:"Cascade Merino Base Layer Legging (men's)",category:"Base layer",range:"rollover",rrp:99.95,bf_price:44.99,bf_disc_pct:55,bfeu_price:47.95,bfeu_disc_pct:52,bz_price:59.98,bz_disc_pct:40,va_price:52.95,va_disc_pct:47,worst_price:44.99,worst_disc_pct:55,worst_retailer:"Bergfreunde DE"},
+  {date:"2025-04-28",name:"Icon Merino Long Sleeve (men's)",category:"Base layer",range:"new",rrp:89.95,bf_price:57.97,bf_disc_pct:36,bfeu_price:57.97,bfeu_disc_pct:36,bz_price:62.95,bz_disc_pct:30,va_price:60.95,va_disc_pct:32,worst_price:57.97,worst_disc_pct:36,worst_retailer:"Bergfreunde DE"},
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let allData = [];
+let isDummy = false;
+let filterSite = 'all';
+let filterRange = 'all';
+let searchTerm = '';
+let sortCol = 'worst_disc_pct';
+let sortDir = -1;
+
+// ── FILE LOAD ─────────────────────────────────────────────────
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data) || !data.length) { alert('prices.json is empty. Run node scraper.js first.'); return; }
+      allData = data; isDummy = false; render();
+    } catch { alert('Could not read that file. Make sure you selected prices.json.'); }
+  };
+  reader.readAsText(file);
+}
+function loadDummy() { allData = DUMMY; isDummy = true; render(); }
+
+// ── HELPERS ───────────────────────────────────────────────────
+function eur(v) { return v != null ? '€'+parseFloat(v).toFixed(2) : '—'; }
+function latestByProduct(rows) {
+  const map = {};
+  for (const r of rows) { if (!map[r.name] || r.date > map[r.name].date) map[r.name] = r; }
+  return Object.values(map);
+}
+function getDates(rows) { return [...new Set(rows.map(r => r.date))].sort(); }
+function avg(arr) { const f=arr.filter(v=>v!=null&&!isNaN(v)); return f.length ? Math.round(f.reduce((a,b)=>a+b,0)/f.length) : null; }
+
+function discBadge(d) {
+  if (d==null) return '<span class="badge b-neutral">N/A</span>';
+  if (d>=30)   return `<span class="badge b-critical">-${d}%</span>`;
+  if (d>=20)   return `<span class="badge b-warning">-${d}%</span>`;
+  if (d>0)     return `<span class="badge b-ok">-${d}%</span>`;
+  return '<span class="badge b-ok">RRP</span>';
+}
+function rangeBadge(r) {
+  if (r==='new')      return '<span class="badge b-current"><span class="range-dot dot-current"></span>New</span>';
+  if (r==='rollover') return '<span class="badge b-rollover"><span class="range-dot dot-rollover"></span>Rollover</span>';
+  if (r==='eol')      return '<span class="badge b-archive"><span class="range-dot dot-archive"></span>EOL</span>';
+  return '<span class="badge b-archive"><span class="range-dot dot-archive"></span>EOL</span>';
+}
+function retailerBadge(name) {
+  const map = {'Bergfreunde DE':'#b83232','Bergfreunde EU':'#6b3fa0','Bergzeit':'#1a5296','Varuste':'#1e6e42'};
+  const col = map[name] || '#6b6762';
+  return `<span style="font-family:var(--font-mono);font-size:10px;color:${col};font-weight:500">${name}</span>`;
+}
+
+// Detect sitewide sale: if 70%+ of a retailer's SKUs are discounted 15%+
+function detectSiteSales(latest) {
+  const retailers = [
+    {key:'bf', label:'Bergfreunde DE', disc: r=>r.bf_disc_pct},
+    {key:'bfeu', label:'Bergfreunde EU', disc: r=>r.bfeu_disc_pct},
+    {key:'bz', label:'Bergzeit', disc: r=>r.bz_disc_pct},
+    {key:'va', label:'Varuste', disc: r=>r.va_disc_pct},
+  ];
+  const alerts = [];
+  for (const ret of retailers) {
+    const withData = latest.filter(r => ret.disc(r) != null);
+    if (withData.length < 3) continue;
+    const discounted = withData.filter(r => ret.disc(r) >= 15);
+    const ratio = discounted.length / withData.length;
+    if (ratio >= 0.7) {
+      const avgDisc = avg(discounted.map(r => ret.disc(r)));
+      alerts.push({label: ret.label, ratio: Math.round(ratio*100), avg: avgDisc});
+    }
+  }
+  return alerts;
+}
+
+// Expand latest rows into per-retailer rows for filtering
+function expandToRetailerRows(latest) {
+  const out = [];
+  for (const r of latest) {
+    if (r.bf_price != null)   out.push({...r, _retailer:'Bergfreunde DE', _price:r.bf_price, _disc:r.bf_disc_pct});
+    if (r.bfeu_price != null) out.push({...r, _retailer:'Bergfreunde EU', _price:r.bfeu_price, _disc:r.bfeu_disc_pct});
+    if (r.bz_price != null)   out.push({...r, _retailer:'Bergzeit', _price:r.bz_price, _disc:r.bz_disc_pct});
+    if (r.va_price != null)   out.push({...r, _retailer:'Varuste', _price:r.va_price, _disc:r.va_disc_pct});
+  }
+  return out;
+}
+
+function getTableRows() {
+  let rows = expandToRetailerRows(latestByProduct(allData));
+  if (filterSite !== 'all') rows = rows.filter(r => r._retailer === filterSite);
+  if (filterRange !== 'all') rows = rows.filter(r => r.range === filterRange);
+  if (searchTerm) rows = rows.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  return rows.sort((a,b) => {
+    const av = a[sortCol]??a._disc??-999, bv = b[sortCol]??b._disc??-999;
+    return typeof av==='string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  const dates = getDates(allData);
+  const latest = latestByProduct(allData);
+  const saleAlerts = detectSiteSales(latest);
+
+  // Stats
+  const newRows      = latest.filter(r=>r.range==='new');
+  const rolloverRows = latest.filter(r=>r.range==='rollover');
+  const eolRows      = latest.filter(r=>r.range==='eol');
+
+  // Critical = new or rollover discounted 20%+
+  const critNew      = newRows.filter(r=>r.worst_disc_pct>=20).length;
+  const critRollover = rolloverRows.filter(r=>r.worst_disc_pct>=20).length;
+  const eolDisc      = eolRows.filter(r=>r.worst_disc_pct>=20).length;
+  const totalSKUs    = latest.length;
+
+  document.getElementById('last-run-label').textContent = dates.length ? 'Last run: '+dates[dates.length-1] : 'Demo data';
+
+  // Warning table rows — new + rollover 20%+ only
+  const warnRows = expandToRetailerRows(latest)
+    .filter(r => (r.range==='new'||r.range==='rollover') && r._disc>=20)
+    .sort((a,b)=>b._disc-a._disc);
+
+  app.innerHTML = `
+    ${isDummy ? `<div class="demo-banner"><span class="demo-badge">DEMO</span>Showing dummy data. Load prices.json to see live data.</div>` : ''}
+
+    ${saleAlerts.length ? `<div class="sale-alerts">
+      ${saleAlerts.map(a=>`<div class="sale-alert critical">
+        <span class="sale-icon">⚠</span>
+        <span><strong>Sitewide sale detected — ${a.label}.</strong> ${a.ratio}% of tracked SKUs discounted, avg -${a.avg}% vs RRP. Likely active promotional event.</span>
+      </div>`).join('')}
+    </div>` : ''}
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-stripe stripe-red"></div>
+        <div class="stat-label">New range — discounted</div>
+        <div class="stat-val col-red">${critNew}</div>
+        <div class="stat-sub">SKUs 20%+ below RRP</div>
+      </div>
+      <div class="stat-card"><div class="stat-stripe stripe-amber"></div>
+        <div class="stat-label">Rollover — discounted</div>
+        <div class="stat-val col-amber">${critRollover}</div>
+        <div class="stat-sub">SKUs 20%+ below RRP</div>
+      </div>
+      <div class="stat-card"><div class="stat-stripe stripe-ghost"></div>
+        <div class="stat-label">EOL — discounted</div>
+        <div class="stat-val" style="color:var(--ghost)">${eolDisc}</div>
+        <div class="stat-sub">end of line activity</div>
+      </div>
+      <div class="stat-card"><div class="stat-stripe stripe-blue"></div>
+        <div class="stat-label">New SKUs tracked</div>
+        <div class="stat-val col-blue">${newRows.length}</div>
+        <div class="stat-sub">of ${totalSKUs} total</div>
+      </div>
+      <div class="stat-card"><div class="stat-stripe stripe-amber"></div>
+        <div class="stat-label">Rollover SKUs tracked</div>
+        <div class="stat-val col-amber">${rolloverRows.length}</div>
+        <div class="stat-sub">of ${totalSKUs} total</div>
+      </div>
+      <div class="stat-card"><div class="stat-stripe stripe-ghost"></div>
+        <div class="stat-label">Runs on file</div>
+        <div class="stat-val">${dates.length}</div>
+        <div class="stat-sub">${totalSKUs} SKUs tracked</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <span class="section-label">⚠ Early warning — new &amp; rollover SKUs discounted 20%+</span>
+    </div>
+    <div class="warn-table-wrap">
+      ${warnRows.length===0
+        ? `<div class="no-data">No new or rollover SKUs discounted 20%+ right now.</div>`
+        : `<table class="warn-table">
+          <thead><tr>
+            <th>Product</th><th>Range</th><th>Retailer</th><th>RRP</th><th>Live price</th><th>Gap vs RRP</th>
+          </tr></thead>
+          <tbody>${warnRows.map(r=>`<tr>
+            <td style="font-weight:500">${r.name}</td>
+            <td>${rangeBadge(r.range)}</td>
+            <td>${retailerBadge(r._retailer)}</td>
+            <td class="td-dim">${eur(r.rrp)}</td>
+            <td class="td-mono">${eur(r._price)}</td>
+            <td>${discBadge(r._disc)}</td>
+          </tr>`).join('')}</tbody>
+        </table>`}
+    </div>
+
+    <div class="section-head" style="margin-top:28px">
+      <span class="section-label">All prices</span>
+      <div class="section-actions">
+        <button class="btn-sm" onclick="document.getElementById('file-reload').click()">Load new file</button>
+        <button class="btn" onclick="exportCSV()">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;margin-right:2px">Site</span>
+      ${['all','Bergfreunde DE','Bergfreunde EU','Bergzeit','Varuste'].map(s=>`<button class="pill ${filterSite===s?'active':''}" onclick="setSite('${s}')">${s==='all'?'All sites':s}</button>`).join('')}
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;margin-left:8px;margin-right:2px">Range</span>
+      ${['all','new','rollover','eol'].map(r=>`<button class="pill ${filterRange===r?'active':''}" onclick="setRange('${r}')">${r==='all'?'All':r==='eol'?'EOL':r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('')}
+      <input class="search-box" type="text" placeholder="Search products…" value="${searchTerm}" oninput="setSearch(this.value)">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="setSortCol('name')">Product ${sortCol==='name'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="setSortCol('range')">Range ${sortCol==='range'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="setSortCol('_retailer')">Retailer ${sortCol==='_retailer'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="setSortCol('rrp')">EU RRP ${sortCol==='rrp'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="setSortCol('_price')">Live price ${sortCol==='_price'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="setSortCol('_disc')">Gap vs RRP ${sortCol==='_disc'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="setSortCol('date')">Checked ${sortCol==='date'?(sortDir===1?'↑':'↓'):'↕'}</th>
+        </tr></thead>
+        <tbody id="tbody">${renderTableBody(getTableRows())}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderTableBody(rows) {
+  if (!rows.length) return `<tr><td colspan="7" class="no-data">No results</td></tr>`;
+  return rows.map(r=>`<tr>
+    <td class="td-name">${r.name}</td>
+    <td>${rangeBadge(r.range||'archive')}</td>
+    <td>${retailerBadge(r._retailer)}</td>
+    <td class="td-dim">${eur(r.rrp)}</td>
+    <td class="td-mono">${eur(r._price)}</td>
+    <td>${discBadge(r._disc)}</td>
+    <td class="td-ghost">${r.date}</td>
+  </tr>`).join('');
+}
+
+function setSite(s){filterSite=s;updateTable()}
+function setRange(r){filterRange=r;updateTable()}
+function setSearch(v){searchTerm=v;updateTable()}
+function setSortCol(c){sortCol===c?sortDir*=-1:(sortCol=c,sortDir=-1);render()}
+
+function updateTable() {
+  // Rebuild just filter pills and table without full re-render
+  render();
+}
+
+function exportCSV() {
+  const rows = getTableRows();
+  if (!rows.length) return;
+  const header = 'Date,Product,Category,Range,Retailer,EU RRP,Live Price,Discount %';
+  const lines = rows.map(r=>[r.date,'"'+r.name+'"',r.category,r.range||'',r._retailer,r.rrp,r._price??'',r._disc!=null?'-'+r._disc+'%':''].join(','));
+  const a = document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([header,...lines].join('\n'));
+  a.download='mons-prices-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
