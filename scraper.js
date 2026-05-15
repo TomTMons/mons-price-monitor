@@ -1,341 +1,441 @@
-/**
- * Mons Royale Price Monitor
- * Run with: node scraper.js
+**
+ * Mons Royale Price Scraper — Brand Page Edition
+ *
+ * Loads the Mons Royale brand page on each retailer,
+ * takes sectioned screenshots, sends to Claude Vision,
+ * fuzzy-matches results against the full SKU list.
+ *
+ * Run: node scraper.js
+ * Requires: ANTHROPIC_API_KEY environment variable
  */
 
 import { chromium } from 'playwright';
+import Anthropic from '@anthropic-ai/sdk';
 import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
+import { compareTwoStrings } from 'string-similarity';
 
-// ─────────────────────────────────────────────────────────────
-// SKU LIST — add/edit products here
-// Find URLs by searching the product on each retailer's site
-// Set url_bf or url_bz to null if they don't stock it
-// ─────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────
-// RETAILERS
-// bf   = Bergfreunde DE (bergfreunde.de)
-// bfeu = Bergfreunde EU (bergfreunde.eu)
-// bz   = Bergzeit (bergzeit.de)
-// va   = Varuste (varuste.net)
-// range = set once ranges.csv is loaded. Leave as null until then.
-// ─────────────────────────────────────────────────────────────
-const SKUS = [
+// ── RETAILERS ─────────────────────────────────────────────────
+const RETAILERS = [
   {
-    name: "Cascade Merino Base Layer Long Sleeve (men's)",
-    category: "Base layer", range: "rollover",
-    rrp: 109.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-cascade-merino-flex-200-l-s-merinounterwaesche/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-cascade-merino-flex-200-l-s-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-herren-cascade-merino-longsleeve/1095328/",
-    url_va:   null,
+    key: 'bergfreunde_de',
+    label: 'Bergfreunde DE',
+    pages: [
+      'https://www.bergfreunde.de/marken/mons-royale/',
+      'https://www.bergfreunde.de/marken/mons-royale/2/',
+    ],
   },
   {
-    name: "Cascade Merino Base Layer Long Sleeve (women's)",
-    category: "Base layer", range: "rollover",
-    rrp: 109.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-womens-cascade-merino-flex-200-l-s-merinounterwaesche/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-womens-cascade-merino-flex-200-l-s-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-damen-cascade-merino-longsleeve/1095333/",
-    url_va:   null,
+    key: 'bergfreunde_eu',
+    label: 'Bergfreunde EU',
+    pages: [
+      'https://www.bergfreunde.eu/brands/mons-royale/',
+      'https://www.bergfreunde.eu/brands/mons-royale/2/',
+    ],
   },
   {
-    name: "Cascade Merino Base Layer Legging (men's)",
-    category: "Base layer", range: "rollover",
-    rrp: 99.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-cascade-merino-flex-200-legging-merinounterwaesche/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-cascade-merino-flex-200-legging-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-herren-cascade-flex-200-hose/1095330/",
-    url_va:   null,
+    key: 'bergzeit',
+    label: 'Bergzeit',
+    pages: [
+      'https://www.bergzeit.de/marken/mons-royale/',
+      'https://www.bergzeit.de/marken/mons-royale/2/',
+    ],
   },
   {
-    name: "Cascade Merino Base Layer Legging (women's)",
-    category: "Base layer", range: "rollover",
-    rrp: 99.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-womens-cascade-merino-flex-200-legging-merinounterwaesche/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-womens-cascade-merino-flex-200-legging-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-damen-cascade-flex-200-hose/1095335/",
-    url_va:   null,
-  },
-  {
-    name: "Cascade Merino Base Layer 3/4 Legging (men's)",
-    category: "Base layer", range: "rollover",
-    rrp: 89.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-cascade-merino-flex-200-3-4-legging-merinounterwaesche/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-cascade-merino-flex-200-3-4-legging-merino-base-layer/",
-    url_bz:   null,
-    url_va:   null,
-  },
-  {
-    name: "Icon Merino Long Sleeve (men's)",
-    category: "Base layer", range: "new",
-    rrp: 89.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-icon-merino-air-con-raglan-merinoshirt/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-icon-merino-air-con-raglan-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-herren-icon-merino-air-con-raglan-long-sleeve/1125967/",
-    url_va:   null,
-  },
-  {
-    name: "Tarn Merino Long Sleeve (men's)",
-    category: "Base layer", range: "new",
-    rrp: 109.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-tarn-merino-long-sleeve-merinoshirt/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-tarn-merino-long-sleeve-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-herren-tarn-merino-longsleeve/1125979/",
-    url_va:   null,
-  },
-  {
-    name: "Bella Merino Long Sleeve Hood (women's)",
-    category: "Base layer", range: "new",
-    rrp: 119.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-womens-bella-tech-hood-merinounterwaesche/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-womens-bella-tech-hood-merino-base-layer/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-damen-bella-tech-hood-longsleeve/1079753/",
-    url_va:   null,
-  },
-  {
-    name: "Diversion Merino Wind Jacket (men's)",
-    category: "Outerwear", range: "new",
-    rrp: 199.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-diversion-merino-wind-jacket-softshelljacke/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-diversion-merino-wind-jacket-softshell-jacket/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-herren-diversion-merino-wind-jacket/1142190/",
-    url_va:   null,
-  },
-  {
-    name: "Canyon Merino Insulated Hooded Jacket (men's)",
-    category: "Outerwear", range: "rollover",
-    rrp: 319.95,
-    url_bf:   "https://www.bergfreunde.de/mons-royale-canyon-merino-hoodie-jacket-softshelljacke/",
-    url_bfeu: "https://www.bergfreunde.eu/mons-royale-canyon-merino-hoodie-jacket-softshell-jacket/",
-    url_bz:   "https://www.bergzeit.de/p/mons-royale-herren-canyon-merino-hoodie-jacket/1142188/",
-    url_va:   null,
+    key: 'varuste',
+    label: 'Varuste',
+    pages: [
+      'https://www.varuste.net/search?q=mons+royale&sort=relevance',
+    ],
   },
 ];
 
-// ─────────────────────────────────────────────────────────────
-// PRICE EXTRACTION
-// ─────────────────────────────────────────────────────────────
-async function extractPrice(page, url, retailer, rrp) {
-  // Minimum credible price: 40% of RRP. Filters out shipping costs, voucher amounts, etc.
-  const minPrice = rrp * 0.5;
-  const maxPrice = rrp * 1.2; // also ignore anything suspiciously above RRP (VAT-inclusive anomalies)
+// ── FULL SKU LIST (R1-26) ─────────────────────────────────────
+const SKUS = [
+  { name: "Arcadia Merino Fleece Hoody", gender: "mens", category: "Men's Mid Layer", range: "eol", season: "R2-25" },
+  { name: "Arcadia Merino Fleece Hoody", gender: "womens", category: "Women's Mid Layer", range: "eol", season: "R2-25" },
+  { name: "Offgrid Merino Fleece 1/2 Zip Long Sleeve", gender: "mens", category: "Men's Mid Layer", range: "eol", season: "R2-25" },
+  { name: "Offgrid Merino Fleece Long Sleeve", gender: "womens", category: "Women's Mid Layer", range: "eol", season: "R2-25" },
+  { name: "Offgrid Merino Fleece Wind Jacket", gender: "womens", category: "Women's Mid Layer", range: "eol", season: "R2-25" },
+  { name: "Offgrid Merino Fleece Wind Jacket", gender: "mens", category: "Men's Mid Layer", range: "eol", season: "R2-25" },
+  { name: "Stacker Merino Insulated Jacket", gender: "unisex", category: "Unisex Insulation", range: "eol", season: "R2-25" },
+  { name: "Yotei Merino Classic Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "eol", season: "R2-25" },
+  { name: "Yotei Merino Classic Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "eol", season: "R2-25" },
+  { name: "Yotei Merino High Neck Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "eol", season: "R2-25" },
+  { name: "Yotei Merino Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "eol", season: "R2-25" },
+  { name: "Yotei Merino Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "eol", season: "R2-25" },
+  { name: "Yotei Merino Powder Hood Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "eol", season: "R2-25" },
+  { name: "AT Merino Long Sleeve Shirt", gender: "mens", category: "Men's Shirt", range: "new", season: "R1-26" },
+  { name: "AT Merino Long Sleeve Shirt", gender: "womens", category: "Women's Shirt", range: "new", season: "R1-26" },
+  { name: "AT Merino Short Sleeve Shirt", gender: "mens", category: "Men's Shirt", range: "new", season: "R1-26" },
+  { name: "AT Merino Short Sleeve Shirt", gender: "womens", category: "Women's Shirt", range: "new", season: "R1-26" },
+  { name: "Aero Ultralight Merino T-Shirt", gender: "mens", category: "Men's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Aero Ultralight Merino T-Shirt", gender: "womens", category: "Women's T-Shirt", range: "new", season: "R1-26" },
+  { name: "All Mission Cargo Shorts", gender: "mens", category: "Men's Shorts", range: "new", season: "R1-26" },
+  { name: "All Mission Pants", gender: "mens", category: "Men's Pants", range: "new", season: "R1-26" },
+  { name: "All Mission Pants", gender: "womens", category: "Women's Pants", range: "new", season: "R1-26" },
+  { name: "All Mission Shorts", gender: "womens", category: "Women's Shorts", range: "new", season: "R1-26" },
+  { name: "Bella Merino Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Bella Merino Long Sleeve Hood", gender: "womens", category: "Women's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Bella Merino Tank", gender: "womens", category: "Women's Tank", range: "new", season: "R1-26" },
+  { name: "Breezer Merino Short Sleeve Shirt", gender: "mens", category: "Men's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Breezer Merino Short Sleeve Shirt", gender: "womens", category: "Women's Shirt", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Bike Jersey Long Sleeve", gender: "mens", category: "Men's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Bike Jersey Long Sleeve", gender: "womens", category: "Women's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Bike Jersey Short Sleeve", gender: "mens", category: "Men's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Bike Jersey Short Sleeve", gender: "womens", category: "Women's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Trail Pants", gender: "mens", category: "Men's Pants", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Trail Pants", gender: "womens", category: "Women's Pants", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Trail Shorts", gender: "mens", category: "Men's Shorts", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Trail Shorts", gender: "womens", category: "Women's Shorts", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Wind Jacket", gender: "mens", category: "Men's Jacket", range: "new", season: "R1-26" },
+  { name: "Diversion Merino Wind Jacket", gender: "womens", category: "Women's Jacket", range: "new", season: "R1-26" },
+  { name: "Folo Merino Briefs", gender: "womens", category: "Women's Underwear", range: "new", season: "R1-26" },
+  { name: "Hannah Merino Hot Pants", gender: "womens", category: "Women's Underwear", range: "new", season: "R1-26" },
+  { name: "Hold 'em Merino Boxer", gender: "mens", category: "Men's Underwear", range: "new", season: "R1-26" },
+  { name: "Hold 'em Shorty Merino Boxer", gender: "mens", category: "Men's Underwear", range: "new", season: "R1-26" },
+  { name: "Icon Merino Classic T-Shirt", gender: "womens", category: "Women's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Icon Merino Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Icon Merino Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Icon Merino Raglan Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Icon Merino Raglan Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Icon Merino T-Shirt", gender: "womens", category: "Women's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Icon Merino T-Shirt", gender: "mens", category: "Men's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Icon Merino Tank", gender: "womens", category: "Women's Tank", range: "new", season: "R1-26" },
+  { name: "Inversion Merino Crew", gender: "mens", category: "Men's Sweater", range: "new", season: "R1-26" },
+  { name: "Inversion Merino Crew", gender: "womens", category: "Women's Sweater", range: "new", season: "R1-26" },
+  { name: "Inversion Merino Hoodie", gender: "mens", category: "Men's Hoodie", range: "new", season: "R1-26" },
+  { name: "Inversion Merino Hoodie", gender: "womens", category: "Women's Hoodie", range: "new", season: "R1-26" },
+  { name: "Pivot Merino Long Sleeve Hood", gender: "mens", category: "Men's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Pivot Merino Long Sleeve Hood", gender: "womens", category: "Women's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Proximity Merino Legging", gender: "womens", category: "Women's Leggings", range: "new", season: "R1-26" },
+  { name: "Proximity Merino Sports Bra", gender: "womens", category: "Women's Underwear", range: "new", season: "R1-26" },
+  { name: "Quad Merino Fleece Jacket", gender: "womens", category: "Women's Jacket", range: "new", season: "R1-26" },
+  { name: "Quad Merino Fleece Jacket", gender: "mens", category: "Men's Jacket", range: "new", season: "R1-26" },
+  { name: "Quad Merino Fleece Pullover", gender: "womens", category: "Women's Sweater", range: "new", season: "R1-26" },
+  { name: "Quad Merino Fleece Pullover", gender: "mens", category: "Men's Sweater", range: "new", season: "R1-26" },
+  { name: "Sierra Merino Sports Bra", gender: "womens", category: "Women's Underwear", range: "new", season: "R1-26" },
+  { name: "Solace Merino Seamless Legging", gender: "womens", category: "Women's Leggings", range: "new", season: "R1-26" },
+  { name: "Stella Merino X-Back Bra", gender: "womens", category: "Women's Underwear", range: "new", season: "R1-26" },
+  { name: "Sylvia Merino Boyleg", gender: "womens", category: "Women's Underwear", range: "new", season: "R1-26" },
+  { name: "Tarn Merino Bike Wind Jersey", gender: "mens", category: "Men's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Tarn Merino Bike Wind Jersey", gender: "womens", category: "Women's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Tarn Merino Long Sleeve", gender: "mens", category: "Men's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Tarn Merino Long Sleeve", gender: "womens", category: "Women's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Tarn Merino T-Shirt", gender: "mens", category: "Men's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Tarn Merino T-Shirt", gender: "womens", category: "Women's Bike Jersey", range: "new", season: "R1-26" },
+  { name: "Temple Merino Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Temple Merino Long Sleeve Hood", gender: "mens", category: "Men's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Yonder Merino Organic Cotton Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Yonder Merino Organic Cotton Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "new", season: "R1-26" },
+  { name: "Yonder Merino Organic Cotton T-Shirt", gender: "mens", category: "Men's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Yonder Merino Organic Cotton T-Shirt", gender: "womens", category: "Women's T-Shirt", range: "new", season: "R1-26" },
+  { name: "Afterbang Suspenders", gender: "unisex", category: "Unisex", range: "rollover", season: "R1-26" },
+  { name: "Amp Merino Fleece Gloves", gender: "unisex", category: "Unisex Gloves", range: "rollover", season: "R1-26" },
+  { name: "Ascender Merino Base Layer 3/4 Legging", gender: "mens", category: "Men's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Ascender Merino Base Layer Hooded Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Ascender Merino Base Layer Legging", gender: "womens", category: "Women's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Ascender Merino Base Layer Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Ascender Merino Base Layer Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Ascender Merino Base Layer Mock Neck Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Canyon Merino Insulated Hooded Jacket", gender: "womens", category: "Women's Jacket", range: "rollover", season: "R1-26" },
+  { name: "Canyon Merino Insulated Hooded Jacket", gender: "mens", category: "Men's Jacket", range: "rollover", season: "R1-26" },
+  { name: "Canyon Merino Insulated Vest", gender: "womens", category: "Women's Vest", range: "rollover", season: "R1-26" },
+  { name: "Canyon Merino Insulated Vest", gender: "mens", category: "Men's Vest", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer 1/4 Zip Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer 1/4 Zip Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer 3/4 Legging", gender: "mens", category: "Men's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer 3/4 Legging", gender: "womens", category: "Women's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer Legging", gender: "mens", category: "Men's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer Legging", gender: "womens", category: "Women's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Cascade Merino Base Layer Mock Neck Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Chunky Logger Merino Beanie", gender: "unisex", category: "Unisex Beanie", range: "rollover", season: "R1-26" },
+  { name: "Decade Merino Fleece Hood", gender: "unisex", category: "Unisex", range: "rollover", season: "R1-26" },
+  { name: "Diversion Merino Wind Vest", gender: "mens", category: "Men's Vest", range: "rollover", season: "R1-26" },
+  { name: "Diversion Merino Wind Vest", gender: "womens", category: "Women's Vest", range: "rollover", season: "R1-26" },
+  { name: "Elevation Merino Fleece Gloves", gender: "unisex", category: "Unisex Gloves", range: "rollover", season: "R1-26" },
+  { name: "Epic Merino Bike Liner", gender: "womens", category: "Women's Underwear", range: "rollover", season: "R1-26" },
+  { name: "Epic Merino Bike Liner", gender: "mens", category: "Men's Underwear", range: "rollover", season: "R1-26" },
+  { name: "Escapade Pants", gender: "mens", category: "Men's Pants", range: "rollover", season: "R1-26" },
+  { name: "Escapade Pants", gender: "womens", category: "Women's Pants", range: "rollover", season: "R1-26" },
+  { name: "Escapade Shorts", gender: "mens", category: "Men's Shorts", range: "rollover", season: "R1-26" },
+  { name: "Escapade Shorts", gender: "womens", category: "Women's Shorts", range: "rollover", season: "R1-26" },
+  { name: "Horizon Merino Crew", gender: "mens", category: "Men's Mid Layer", range: "rollover", season: "R1-26" },
+  { name: "Horizon Merino Crew", gender: "womens", category: "Women's Mid Layer", range: "rollover", season: "R1-26" },
+  { name: "MP Heavyweight Merino T-Shirt", gender: "mens", category: "Men's T-Shirt", range: "rollover", season: "R1-26" },
+  { name: "MP Heavyweight Merino T-Shirt", gender: "womens", category: "Women's T-Shirt", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Base Layer 1/2 Zip Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Base Layer 1/2 Zip Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Base Layer Legging", gender: "womens", category: "Women's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Base Layer Legging", gender: "mens", category: "Men's Leggings", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Base Layer Long Sleeve", gender: "womens", category: "Women's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Base Layer Long Sleeve", gender: "mens", category: "Men's Long Sleeve Top", range: "rollover", season: "R1-26" },
+  { name: "Olympus Merino Glove Liners", gender: "unisex", category: "Unisex Gloves", range: "rollover", season: "R1-26" },
+  { name: "Stacker Merino Insulated Vest", gender: "unisex", category: "Unisex Insulation", range: "rollover", season: "R1-26" },
+  { name: "Stratos Merino Sports Bra", gender: "womens", category: "Women's Underwear", range: "rollover", season: "R1-26" },
+];
 
-  function credible(p) { return p >= minPrice && p <= maxPrice; }
+// ── MATCH CONFIG ──────────────────────────────────────────────
+const MATCH_THRESHOLD = 0.65;
+const GENDER_SIGNALS = {
+  mens:   ['herren', "men's", 'men ', ' men', 'männer', 'male'],
+  womens: ['damen', "women's", 'women ', ' women', 'frauen', 'female'],
+  kids:   ['kinder', 'kids', 'junior', 'youth'],
+};
 
+function detectGender(text) {
+  const lower = text.toLowerCase();
+  for (const [gender, signals] of Object.entries(GENDER_SIGNALS)) {
+    if (signals.some(s => lower.includes(s))) return gender;
+  }
+  return 'unisex';
+}
+
+function matchProduct(retailerName, retailerGender) {
+  const cleaned = retailerName.replace(/^mons\s+royale\s*/i, '').trim();
+  const cleanedLower = cleaned.toLowerCase();
+  let bestMatch = null, bestScore = 0;
+
+  for (const sku of SKUS) {
+    const nameScore = compareTwoStrings(cleanedLower, sku.name.toLowerCase());
+    let genderBonus = 0;
+    if (retailerGender === sku.gender) genderBonus = 0.15;
+    else if (sku.gender !== 'unisex' && retailerGender !== 'unisex' && retailerGender !== sku.gender) genderBonus = -0.10;
+    const total = nameScore + genderBonus;
+    if (total > bestScore) { bestScore = total; bestMatch = sku; }
+  }
+  return bestScore >= MATCH_THRESHOLD
+    ? { sku: bestMatch, score: Math.min(bestScore, 1.0), matched: true }
+    : { sku: null, score: bestScore, matched: false };
+}
+
+// ── PAGE CAPTURE ──────────────────────────────────────────────
+async function capturePageSections(page, url) {
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(2500);
+    const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const status = response?.status();
+    if (status === 404) return { sections: [], status: 'not_found' };
+    if (status === 403 || status === 503) return { sections: [], status: 'blocked' };
 
-    // Strategy 1: JSON-LD structured data
-    const jsonLdPrice = await page.evaluate(() => {
-      const scripts = document.querySelectorAll('script[type="application/ld+json"]');
-      for (const s of scripts) {
-        try {
-          const data = JSON.parse(s.textContent);
-          const find = (obj) => {
-            if (!obj || typeof obj !== 'object') return null;
-            if (obj['@type'] === 'Offer' && obj.price) return parseFloat(obj.price);
-            if (obj['@type'] === 'Product' && obj.offers) {
-              const offers = Array.isArray(obj.offers) ? obj.offers : [obj.offers];
-              for (const o of offers) {
-                if (o.price) return parseFloat(o.price);
-              }
-            }
-            for (const val of Object.values(obj)) {
-              const found = find(val);
-              if (found) return found;
-            }
-            return null;
-          };
-          const price = find(data);
-          if (price && price > 0) return price;
-        } catch {}
-      }
-      return null;
-    });
-    if (jsonLdPrice && credible(jsonLdPrice)) return { price: jsonLdPrice, error: null };
+    await page.waitForTimeout(4000);
+    const pageHeight = await page.evaluate(() => document.body.scrollHeight);
+    const viewportH = 900;
+    const overlap = 150;
+    const sections = [];
+    let scrollY = 0, cap = 0;
 
-    // Strategy 2: meta itemprop
-    const metaPrice = await page.$eval('meta[itemprop="price"]', el => el.content).catch(() => null);
-    if (metaPrice && credible(parseFloat(metaPrice))) return { price: parseFloat(metaPrice), error: null };
-
-    // Strategy 3: common price selectors
-    const domPrice = await page.evaluate((min, max) => {
-      const selectors = [
-        '.js-product-price', '[data-js-product-price]', '.price--current',
-        '.product-price__price', '[class*="CurrentPrice"]', '[class*="current-price"]',
-        '[class*="product-price"]', '.price-tag', '[data-price]', '.price',
-      ];
-      for (const sel of selectors) {
-        const el = document.querySelector(sel);
-        if (el) {
-          const match = el.textContent.trim().match(/(\d{1,3}[.,]\d{2})/);
-          if (match) {
-            const p = parseFloat(match[1].replace(',', '.'));
-            if (p >= min && p <= max) return p;
-          }
-        }
-      }
-      // Fallback: scan all text for price pattern, apply credibility window
-      const pattern = /(\d{1,3}[.,]\d{2})\s*€/g;
-      const prices = [];
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      let node;
-      while ((node = walker.nextNode())) {
-        let m;
-        while ((m = pattern.exec(node.textContent)) !== null) {
-          const p = parseFloat(m[1].replace(',', '.'));
-          if (p >= min && p <= max) prices.push(p);
-        }
-      }
-      // Return lowest credible price (most likely to be the discounted sale price)
-      return prices.length ? Math.min(...prices) : null;
-    }, minPrice, maxPrice);
-    if (domPrice) return { price: domPrice, error: null };
-
-    return { price: null, error: 'price not found on page' };
-
-  } catch (err) {
-    return { price: null, error: err.message.slice(0, 100) };
+    while (scrollY < pageHeight && cap < 25) {
+      await page.evaluate(y => window.scrollTo(0, y), scrollY);
+      await page.waitForTimeout(400);
+      const buf = await page.screenshot({ type: 'jpeg', quality: 80 });
+      sections.push(buf.toString('base64'));
+      scrollY += viewportH - overlap;
+      cap++;
+    }
+    return { sections, status: 'ok', pageHeight };
+  } catch (e) {
+    return { sections: [], status: `error: ${e.message.slice(0, 80)}` };
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// MAIN
-// ─────────────────────────────────────────────────────────────
+// ── VISION EXTRACT ────────────────────────────────────────────
+async function extractFromSection(client, imageB64, sectionNum) {
+  try {
+    const res = await client.messages.create({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 2000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageB64 } },
+          { type: 'text', text: `Section ${sectionNum} of a Mons Royale product listing page on an outdoor gear retailer.
+
+Extract every product visible with its price. Return ONLY a JSON array, nothing else.
+
+Each item: {"name": "full product name including Men's/Women's/Herren/Damen if shown", "price": 89.95, "original_price": 109.95}
+
+Rules:
+- price = current selling price as a number. null if not clearly readable.
+- original_price = crossed-out RRP if shown, otherwise null.
+- Never guess or fabricate a price.
+- Return [] if page is blocked, shows captcha, or has no products.` }
+        ],
+      }],
+    });
+    const clean = res.content[0].text.trim().replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+}
+
+// ── MAIN ──────────────────────────────────────────────────────
 async function run() {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error('\nERROR: ANTHROPIC_API_KEY not set. Run: $env:ANTHROPIC_API_KEY="sk-..."');
+    process.exit(1);
+  }
+
+  const client = new Anthropic({ apiKey });
   const runDate = new Date().toISOString().slice(0, 10);
   const runTs = new Date().toISOString();
-  const results = [];
 
-  console.log('');
-  console.log('Mons Royale Price Monitor');
-  console.log('Run date: ' + runDate);
-  console.log('SKUs: ' + SKUS.length + ' x 2 retailers');
-  console.log('');
+  console.log('\nMons Royale Price Scraper — Brand Page Edition');
+  console.log(`Date: ${runDate} | SKUs: ${SKUS.length} | Retailers: ${RETAILERS.length}\n`);
 
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--lang=de-DE'],
   });
-
   const context = await browser.newContext({
     locale: 'de-DE',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     extraHTTPHeaders: { 'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' },
+    viewport: { width: 1280, height: 900 },
   });
-
   const page = await context.newPage();
-  await page.route('**/*.{png,jpg,jpeg,gif,webp,svg,woff,woff2,ttf}', r => r.abort());
-  await page.route('**/{analytics,gtm,hotjar}*', r => r.abort());
+  await page.route('**/*.{woff,woff2,ttf,otf,mp4,webm}', r => r.abort());
 
-  for (const sku of SKUS) {
-    const row = {
-      date: runDate,
-      timestamp: runTs,
-      name: sku.name,
-      category: sku.category,
-      range: sku.range,
-      rrp: sku.rrp,
-      bf_price: null,   bf_disc_pct: null,   bf_error: null,
-      bfeu_price: null, bfeu_disc_pct: null, bfeu_error: null,
-      bz_price: null,   bz_disc_pct: null,   bz_error: null,
-      va_price: null,   va_disc_pct: null,   va_error: null,
-      worst_price: null, worst_disc_pct: null, worst_retailer: null,
-    };
+  // priceMap[skuKey][retailerKey] = { price, original_price, match_score, retailer_name }
+  const priceMap = {};
+  for (const sku of SKUS) priceMap[sku.name + '||' + sku.gender] = {};
 
-    const retailers = [
-      { key: 'bf',   label: 'Bergfreunde DE', url: sku.url_bf },
-      { key: 'bfeu', label: 'Bergfreunde EU', url: sku.url_bfeu },
-      { key: 'bz',   label: 'Bergzeit',       url: sku.url_bz },
-      { key: 'va',   label: 'Varuste',        url: sku.url_va },
-    ];
+  const allRaw = {};
 
-    for (const ret of retailers) {
-      if (!ret.url) continue;
-      process.stdout.write('[' + ret.key.toUpperCase().padEnd(4) + '] ' + sku.name + ' ... ');
-      const result = await extractPrice(page, ret.url, ret.key, sku.rrp);
-      row[ret.key + '_price'] = result.price;
-      row[ret.key + '_error'] = result.error;
-      if (result.price) {
-        row[ret.key + '_disc_pct'] = Math.round(((sku.rrp - result.price) / sku.rrp) * 100);
-        console.log('EUR ' + result.price.toFixed(2) + ' (' + row[ret.key + '_disc_pct'] + '% off RRP)');
-      } else {
-        console.log('ERROR: ' + result.error);
+  for (const retailer of RETAILERS) {
+    console.log(`\n── ${retailer.label} ─────────────────────`);
+    const retailerProducts = [];
+
+    for (const pageUrl of retailer.pages) {
+      console.log(`  Fetching: ${pageUrl}`);
+      const { sections, status, pageHeight } = await capturePageSections(page, pageUrl);
+      if (status !== 'ok') { console.log(`  Status: ${status} — skipping`); continue; }
+      console.log(`  Height: ${pageHeight}px | Sections: ${sections.length}`);
+
+      for (let i = 0; i < sections.length; i++) {
+        process.stdout.write(`  Section ${i+1}/${sections.length}... `);
+        const products = await extractFromSection(client, sections[i], i + 1);
+        console.log(`${products.length} products`);
+        retailerProducts.push(...products);
       }
     }
 
-    // Worst price across all retailers
-    const candidates = retailers
-      .map(ret => row[ret.key + '_price'] && { price: row[ret.key + '_price'], retailer: ret.label, disc: row[ret.key + '_disc_pct'] })
-      .filter(Boolean);
-    if (candidates.length) {
-      const worst = candidates.sort((a, b) => b.disc - a.disc)[0];
-      row.worst_price = worst.price;
-      row.worst_disc_pct = worst.disc;
-      row.worst_retailer = worst.retailer;
+    allRaw[retailer.key] = retailerProducts;
+
+    // Deduplicate — keep lowest price per name+gender
+    const deduped = {};
+    for (const p of retailerProducts) {
+      if (!p.name || p.price == null) continue;
+      const g = detectGender(p.name);
+      const k = p.name.toLowerCase().replace(/^mons\s+royale\s*/i, '').trim() + '||' + g;
+      if (!deduped[k] || p.price < deduped[k].price) deduped[k] = { ...p, gender: g };
     }
 
-    results.push(row);
+    console.log(`\n  Matching ${Object.keys(deduped).length} unique products...`);
+    let matched = 0, unmatched = 0;
+
+    for (const product of Object.values(deduped)) {
+      const { sku, score, matched: isMatch } = matchProduct(product.name, product.gender);
+      if (isMatch && sku) {
+        const skuKey = sku.name + '||' + sku.gender;
+        const existing = priceMap[skuKey][retailer.key];
+        if (!existing || product.price < existing.price) {
+          priceMap[skuKey][retailer.key] = {
+            price: product.price,
+            original_price: product.original_price ?? null,
+            match_score: Math.round(score * 100),
+            retailer_name: product.name,
+          };
+        }
+        matched++;
+      } else { unmatched++; }
+    }
+    console.log(`  Matched: ${matched} | Unmatched (below threshold): ${unmatched}`);
   }
 
   await browser.close();
 
-  // Save JSON (append — keeps full history)
+  // ── BUILD RESULTS ─────────────────────────────────────────────
+  const results = [];
+  for (const sku of SKUS) {
+    const skuKey = sku.name + '||' + sku.gender;
+    const row = {
+      date: runDate, timestamp: runTs,
+      name: sku.name, gender: sku.gender,
+      category: sku.category, range: sku.range, season: sku.season,
+    };
+
+    let worstPrice = null, worstDisc = null, worstRetailer = null;
+
+    for (const retailer of RETAILERS) {
+      const entry = priceMap[skuKey]?.[retailer.key];
+      row[retailer.key + '_price']       = entry?.price ?? null;
+      row[retailer.key + '_original']    = entry?.original_price ?? null;
+      row[retailer.key + '_match_score'] = entry?.match_score ?? null;
+      row[retailer.key + '_disc_pct']    = null;
+
+      if (entry?.price != null && entry?.original_price != null) {
+        const disc = Math.round(((entry.original_price - entry.price) / entry.original_price) * 100);
+        row[retailer.key + '_disc_pct'] = disc;
+        if (worstDisc == null || disc > worstDisc) {
+          worstDisc = disc; worstPrice = entry.price; worstRetailer = retailer.label;
+        }
+      }
+    }
+
+    row.worst_price = worstPrice;
+    row.worst_disc_pct = worstDisc;
+    row.worst_retailer = worstRetailer;
+    results.push(row);
+  }
+
+  // Save
   const jsonPath = 'prices.json';
   let history = [];
-  if (existsSync(jsonPath)) {
-    try { history = JSON.parse(readFileSync(jsonPath, 'utf8')); } catch {}
-  }
+  if (existsSync(jsonPath)) { try { history = JSON.parse(readFileSync(jsonPath, 'utf8')); } catch {} }
   history.push(...results);
   writeFileSync(jsonPath, JSON.stringify(history, null, 2));
+  writeFileSync('raw_extracted.json', JSON.stringify(allRaw, null, 2));
 
-  // Save CSV (latest run only)
-  const csvWriter = createObjectCsvWriter({
-    path: 'prices.csv',
-    header: [
-      { id: 'date',           title: 'Date' },
-      { id: 'name',           title: 'Product' },
-      { id: 'category',       title: 'Category' },
-      { id: 'range',          title: 'Range' },
-      { id: 'rrp',            title: 'EU RRP' },
-      { id: 'bf_price',       title: 'Bergfreunde DE' },
-      { id: 'bf_disc_pct',    title: 'BF DE disc %' },
-      { id: 'bfeu_price',     title: 'Bergfreunde EU' },
-      { id: 'bfeu_disc_pct',  title: 'BF EU disc %' },
-      { id: 'bz_price',       title: 'Bergzeit' },
-      { id: 'bz_disc_pct',    title: 'BZ disc %' },
-      { id: 'va_price',       title: 'Varuste' },
-      { id: 'va_disc_pct',    title: 'VA disc %' },
-      { id: 'worst_price',    title: 'Worst price' },
-      { id: 'worst_disc_pct', title: 'Worst disc %' },
-      { id: 'worst_retailer', title: 'Worst retailer' },
-    ],
-  });
-  await csvWriter.writeRecords(results);
+  const csvHeaders = [
+    { id: 'date', title: 'Date' }, { id: 'name', title: 'Product' },
+    { id: 'gender', title: 'Gender' }, { id: 'category', title: 'Category' },
+    { id: 'range', title: 'Range' }, { id: 'season', title: 'Season' },
+  ];
+  for (const r of RETAILERS) {
+    csvHeaders.push(
+      { id: r.key + '_price', title: r.label + ' Price' },
+      { id: r.key + '_original', title: r.label + ' RRP' },
+      { id: r.key + '_disc_pct', title: r.label + ' Disc %' },
+    );
+  }
+  csvHeaders.push(
+    { id: 'worst_price', title: 'Worst Price' },
+    { id: 'worst_disc_pct', title: 'Worst Disc %' },
+    { id: 'worst_retailer', title: 'Worst Retailer' },
+  );
+  await createObjectCsvWriter({ path: 'prices.csv', header: csvHeaders }).writeRecords(results);
 
   // Summary
-  console.log('');
-  console.log('----------------------------------------');
-  const bfAvg = results.filter(r => r.bf_disc_pct != null).map(r => r.bf_disc_pct);
-  const bzAvg = results.filter(r => r.bz_disc_pct != null).map(r => r.bz_disc_pct);
-  if (bfAvg.length) console.log('Bergfreunde avg discount: ' + Math.round(bfAvg.reduce((a,b)=>a+b,0)/bfAvg.length) + '%');
-  if (bzAvg.length) console.log('Bergzeit avg discount:    ' + Math.round(bzAvg.reduce((a,b)=>a+b,0)/bzAvg.length) + '%');
+  const withPrices = results.filter(r => RETAILERS.some(ret => r[ret.key + '_price'] != null));
+  const newDisc    = results.filter(r => r.range === 'new' && r.worst_disc_pct >= 20);
+  const rolDisc    = results.filter(r => r.range === 'rollover' && r.worst_disc_pct >= 20);
 
-  const alerts = results.filter(r => r.worst_disc_pct >= 20).sort((a,b) => b.worst_disc_pct - a.worst_disc_pct);
-  if (alerts.length) {
-    console.log('');
-    console.log('SKUs 20%+ below RRP:');
-    alerts.forEach(r => console.log('  ' + r.worst_retailer + ' | ' + r.name + ' | -' + r.worst_disc_pct + '% | EUR ' + r.worst_price?.toFixed(2)));
+  console.log('\n────────────────────────────────────────');
+  console.log('SUMMARY\n');
+  console.log(`Products with prices found: ${withPrices.length}/${results.length}`);
+  console.log(`New range discounted 20%+:  ${newDisc.length}`);
+  console.log(`Rollover discounted 20%+:   ${rolDisc.length}`);
+
+  if (newDisc.length) {
+    console.log('\n⚠ NEW RANGE — DISCOUNTED 20%+:');
+    newDisc.sort((a,b)=>(b.worst_disc_pct||0)-(a.worst_disc_pct||0))
+      .forEach(r => console.log(`  ${(r.worst_retailer||'').padEnd(16)} ${r.name} (${r.gender}) -${r.worst_disc_pct}%`));
   }
 
-  console.log('');
-  console.log('Saved: prices.csv (this run) and prices.json (full history)');
-  console.log('');
+  console.log('\nSaved: prices.json | prices.csv | raw_extracted.json\n');
 }
 
-run().catch(err => {
-  console.error('Error:', err.message);
-  process.exit(1);
-});
+run().catch(e => { console.error('Fatal:', e.message); process.exit(1); });
