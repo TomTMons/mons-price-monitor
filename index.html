@@ -4,126 +4,126 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mons Royale — Retailer Price Monitor</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --ink:#0a0a0a;--paper:#f5f3ef;--card:#ffffff;--rule:#e2dfd8;--mid:#ece9e3;
+  --ink:#0a0a0a;--paper:#f5f3ef;--card:#fff;--rule:#e2dfd8;--mid:#ece9e3;
   --ghost:#9b9690;--dim:#6b6762;
-  --red:#b83232;--red-tint:#fdf1f1;--red-mid:#f5d0d0;
-  --amber:#b06a10;--amber-tint:#fdf6ee;--amber-mid:#f5dfc0;
-  --green:#1e6e42;--green-tint:#eef7f2;--green-mid:#c0e4cf;
-  --blue:#1a5296;--blue-tint:#eef3fb;--blue-mid:#c0d4f0;
-  --purple:#6b3fa0;--purple-tint:#f4f0fb;--purple-mid:#d8c8f5;
-  --font-head:'Syne',sans-serif;
-  --font-body:'IBM Plex Sans',sans-serif;
-  --font-mono:'IBM Plex Mono',monospace;
+  --red:#b83232;--red-t:#fdf1f1;--red-b:#f0c8c8;
+  --amber:#b06a10;--amber-t:#fdf6ee;--amber-b:#f0d8b0;
+  --green:#1e6e42;--green-t:#eef7f2;--green-b:#b8e0c8;
+  --blue:#1a5296;--blue-t:#eef3fb;--blue-b:#b8d0f0;
+  --purple:#6b3fa0;--purple-t:#f4f0fb;--purple-b:#d0b8f0;
+  --font:'IBM Plex Sans',sans-serif;
+  --head:'Syne',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
   --r:4px;
 }
-body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:13px;line-height:1.5;min-height:100vh}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:13px;line-height:1.5;min-height:100vh}
 
 /* HEADER */
-header{background:var(--ink);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
-.h-brand{font-family:var(--font-head);font-size:14px;font-weight:700;color:#fff;letter-spacing:0.04em}
-.h-pipe{width:1px;height:16px;background:#2a2a2a;margin:0 16px}
-.h-title{font-size:12px;color:#666;font-weight:300;font-family:var(--font-body)}
-.h-right{display:flex;align-items:center;gap:16px}
-.h-meta{font-family:var(--font-mono);font-size:10px;color:#444}
-.h-load-btn{font-family:var(--font-mono);font-size:10px;padding:5px 12px;border:1px solid #333;border-radius:var(--r);background:none;color:#888;cursor:pointer;transition:all .15s}
-.h-load-btn:hover{border-color:#666;color:#ccc}
+header{background:var(--ink);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.h-brand{font-family:var(--head);font-size:15px;font-weight:700;color:#fff;letter-spacing:.03em}
+.h-sep{width:1px;height:16px;background:#2a2a2a;margin:0 16px}
+.h-title{font-size:12px;color:#666;font-weight:300}
+.h-right{display:flex;align-items:center;gap:12px}
+.h-meta{font-family:var(--mono);font-size:10px;color:#444}
+.h-btn{font-family:var(--mono);font-size:10px;padding:5px 12px;border:1px solid #333;border-radius:var(--r);background:none;color:#888;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
+.h-btn:hover{border-color:#666;color:#ccc}
 
-/* LAYOUT */
+/* PAGE */
 .page{max-width:1400px;margin:0 auto;padding:28px 32px 80px}
 
-/* LOAD SCREEN */
+/* LOAD */
 .load-screen{display:flex;align-items:center;justify-content:center;min-height:70vh}
 .load-box{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:48px;text-align:center;max-width:400px}
-.load-box h2{font-family:var(--font-head);font-size:20px;font-weight:600;margin-bottom:10px}
+.load-box h2{font-family:var(--head);font-size:20px;font-weight:700;margin-bottom:10px}
 .load-box p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:24px}
-.load-primary{font-family:var(--font-head);font-size:13px;font-weight:600;padding:10px 24px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);cursor:pointer;transition:background .15s;letter-spacing:0.03em}
+.load-primary{font-family:var(--head);font-size:13px;font-weight:600;padding:10px 24px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);cursor:pointer;letter-spacing:.03em;display:inline-block;margin:4px}
 .load-primary:hover{background:#222}
-.load-note{font-family:var(--font-mono);font-size:10px;color:var(--ghost);margin-top:14px}
+.load-note{font-family:var(--mono);font-size:10px;color:var(--ghost);margin-top:14px}
 
 /* DEMO BANNER */
-.demo-banner{background:var(--purple-tint);border:1px solid var(--purple-mid);border-radius:var(--r);padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--purple)}
-.demo-badge{font-family:var(--font-mono);font-size:10px;font-weight:500;background:var(--purple);color:#fff;padding:2px 8px;border-radius:2px;flex-shrink:0}
+.demo-banner{background:var(--purple-t);border:1px solid var(--purple-b);border-radius:var(--r);padding:9px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--purple)}
+.demo-tag{font-family:var(--mono);font-size:10px;font-weight:500;background:var(--purple);color:#fff;padding:2px 8px;border-radius:2px;flex-shrink:0;text-transform:uppercase}
 
-/* ALERT BANNER */
-.sale-alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-.sale-alert{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--r);border:1px solid;font-size:12px}
-.sale-alert.critical{background:var(--red-tint);border-color:var(--red-mid);color:var(--red)}
-.sale-alert.warning{background:var(--amber-tint);border-color:var(--amber-mid);color:var(--amber)}
-.sale-icon{font-size:14px;flex-shrink:0}
-.sale-text strong{font-weight:500}
+/* ALERTS */
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.alert{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-radius:var(--r);border:1px solid;font-size:12px}
+.alert-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.alert.danger{background:var(--red-t);border-color:var(--red-b);color:var(--red)}
+.alert.warn{background:var(--amber-t);border-color:var(--amber-b);color:var(--amber)}
 
 /* STAT CARDS */
-.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
-.stat-card{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px 18px 14px;position:relative;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:28px}
+.stat{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);padding:16px 18px 14px;position:relative;overflow:hidden}
 .stat-stripe{position:absolute;top:0;left:0;right:0;height:3px}
-.stat-label{font-family:var(--font-mono);font-size:10px;color:var(--ghost);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em}
-.stat-val{font-family:var(--font-head);font-size:26px;font-weight:700;line-height:1;margin-bottom:3px}
+.stat-label{font-family:var(--mono);font-size:10px;color:var(--ghost);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.stat-val{font-family:var(--head);font-size:26px;font-weight:700;line-height:1;margin-bottom:3px}
 .stat-sub{font-size:11px;color:var(--dim)}
-.col-red{color:var(--red)}.col-amber{color:var(--amber)}.col-green{color:var(--green)}.col-blue{color:var(--blue)}.col-purple{color:var(--purple)}
-.stripe-red{background:var(--red)}.stripe-amber{background:var(--amber)}.stripe-green{background:var(--green)}.stripe-blue{background:var(--blue)}.stripe-purple{background:var(--purple)}.stripe-ghost{background:var(--ghost)}
+.c-red{color:var(--red)}.c-amber{color:var(--amber)}.c-green{color:var(--green)}.c-blue{color:var(--blue)}.c-ghost{color:var(--ghost)}
 
-/* SECTION */
-.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;margin-top:28px}
-.section-label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ghost)}
-.section-actions{display:flex;gap:8px;align-items:center}
+/* SECTION HEADS */
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;margin-top:28px}
+.sec-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ghost)}
+.sec-actions{display:flex;gap:8px;align-items:center}
 
 /* WARNING TABLE */
-.warn-table-wrap{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-bottom:4px}
-.warn-table{width:100%;border-collapse:collapse;font-size:12px}
-.warn-table th{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ghost);padding:9px 14px;text-align:left;background:var(--mid);border-bottom:1px solid var(--rule)}
-.warn-table td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
-.warn-table tr:last-child td{border-bottom:none}
-.warn-table tr:hover td{background:#faf9f6}
+.warn-wrap{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-bottom:4px}
+.warn-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.warn-tbl th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ghost);padding:9px 14px;text-align:left;background:var(--mid);border-bottom:1px solid var(--rule)}
+.warn-tbl td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
+.warn-tbl tr:last-child td{border-bottom:none}
+.warn-tbl tr:hover td{background:#faf9f6}
+
+/* FILTERS */
+.filters{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:10px;padding:4px 11px;border:1px solid var(--rule);border-radius:20px;background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
+.pill:hover{border-color:var(--ink);color:var(--ink)}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.search{font-family:var(--mono);font-size:11px;padding:5px 12px;border:1px solid var(--rule);border-radius:20px;background:var(--card);color:var(--ink);outline:none;width:200px;margin-left:auto}
+.search:focus{border-color:var(--ink)}
 
 /* MAIN TABLE */
-.filter-row{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-.pill{font-family:var(--font-mono);font-size:10px;padding:4px 11px;border:1px solid var(--rule);border-radius:20px;background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em}
-.pill:hover{border-color:var(--ink);color:var(--ink)}
-.pill.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-.search-box{font-family:var(--font-mono);font-size:11px;padding:5px 12px;border:1px solid var(--rule);border-radius:20px;background:var(--card);color:var(--ink);outline:none;width:200px;margin-left:auto}
-.search-box:focus{border-color:var(--ink)}
-
-.table-wrap{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+.tbl-wrap{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead{background:var(--mid);border-bottom:1px solid var(--rule)}
-th{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ghost);padding:9px 14px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ghost);padding:9px 14px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)}
-td{padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:middle;color:var(--ink)}
+td{padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#faf9f6}
 .td-name{font-weight:500;max-width:200px}
-.td-mono{font-family:var(--font-mono);font-size:11px}
-.td-dim{font-family:var(--font-mono);font-size:11px;color:var(--dim)}
-.td-ghost{font-family:var(--font-mono);font-size:11px;color:var(--ghost)}
+.td-mono{font-family:var(--mono);font-size:11px}
+.td-dim{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.td-ghost{font-family:var(--mono);font-size:11px;color:var(--ghost)}
 
 /* BADGES */
-.badge{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:2px;white-space:nowrap;gap:3px}
-.b-critical{background:var(--red-tint);color:var(--red);border:1px solid var(--red-mid)}
-.b-warning{background:var(--amber-tint);color:var(--amber);border:1px solid var(--amber-mid)}
-.b-ok{background:var(--green-tint);color:var(--green);border:1px solid var(--green-mid)}
-.b-neutral{background:var(--mid);color:var(--ghost);border:1px solid var(--rule)}
-.b-current{background:var(--blue-tint);color:var(--blue);border:1px solid var(--blue-mid)}
-.b-rollover{background:var(--amber-tint);color:var(--amber);border:1px solid var(--amber-mid)}
-.b-archive{background:var(--mid);color:var(--ghost);border:1px solid var(--rule)}
+.badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:2px;white-space:nowrap}
+.b-critical{background:var(--red-t);color:var(--red);border:1px solid var(--red-b)}
+.b-warning{background:var(--amber-t);color:var(--amber);border:1px solid var(--amber-b)}
+.b-ok{background:var(--green-t);color:var(--green);border:1px solid var(--green-b)}
+.b-review{background:var(--amber-t);color:var(--amber);border:1px solid var(--amber-b)}
+.b-notfound{background:var(--mid);color:var(--ghost);border:1px solid var(--rule)}
+.b-new{background:var(--blue-t);color:var(--blue);border:1px solid var(--blue-b)}
+.b-rollover{background:var(--amber-t);color:var(--amber);border:1px solid var(--amber-b)}
+.b-eol{background:var(--mid);color:var(--ghost);border:1px solid var(--rule)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-new{background:var(--blue)}.dot-roll{background:var(--amber)}.dot-eol{background:var(--ghost)}
 
-/* RANGE DOT */
-.range-dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.dot-current{background:var(--blue)}
-.dot-rollover{background:var(--amber)}
-.dot-archive{background:var(--ghost)}
-
-/* BUTTONS */
-.btn{font-family:var(--font-mono);font-size:10px;padding:5px 12px;border:1px solid var(--rule);border-radius:var(--r);background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.04em}
+/* BTN */
+.btn{font-family:var(--mono);font-size:10px;padding:5px 12px;border:1px solid var(--rule);border-radius:var(--r);background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em}
 .btn:hover{border-color:var(--ink);color:var(--ink)}
-.btn-sm{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border:none;border-radius:2px;background:none;color:var(--ghost);cursor:pointer;text-decoration:underline}
-.btn-sm:hover{color:var(--ink)}
+.btn-link{font-family:var(--mono);font-size:10px;color:var(--ghost);background:none;border:none;cursor:pointer;text-decoration:underline}
+.btn-link:hover{color:var(--ink)}
 
-/* NO DATA */
-.no-data{text-align:center;padding:40px;color:var(--ghost);font-family:var(--font-mono);font-size:11px}
+/* EMPTY */
+.empty{text-align:center;padding:40px;color:var(--ghost);font-family:var(--mono);font-size:11px}
+
+/* LEGEND */
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -131,13 +131,13 @@ tr:hover td{background:#faf9f6}
 <header>
   <div style="display:flex;align-items:center">
     <span class="h-brand">MONS ROYALE</span>
-    <div class="h-pipe"></div>
+    <div class="h-sep"></div>
     <span class="h-title">Retailer Price Monitor</span>
   </div>
   <div class="h-right">
-    <span class="h-meta" id="last-run-label">No data loaded</span>
-    <button class="h-load-btn" onclick="document.getElementById('file-reload').click()">Load prices.json</button>
-    <input type="file" id="file-reload" accept=".json" style="display:none" onchange="handleFile(this)">
+    <span class="h-meta" id="hdr-meta">No data</span>
+    <button class="h-btn" onclick="document.getElementById('f-reload').click()">Load prices.json</button>
+    <input type="file" id="f-reload" accept=".json" style="display:none" onchange="handleFile(this)">
   </div>
 </header>
 
@@ -145,334 +145,304 @@ tr:hover td{background:#faf9f6}
   <div class="load-screen">
     <div class="load-box">
       <h2>Price Monitor</h2>
-      <p>Select <strong>prices.json</strong> from your mons-price-scraper folder, or load dummy data to preview the dashboard.</p>
-      <button class="load-primary" onclick="loadDummy()">Preview with dummy data</button>
-      <br><br>
-      <button class="load-primary" style="background:#333" onclick="document.getElementById('file-input').click()">Load prices.json</button>
-      <input type="file" id="file-input" accept=".json" style="display:none" onchange="handleFile(this)">
-      <p class="load-note">Files stay on your computer. Nothing is uploaded.</p>
+      <p>Load <strong>prices.json</strong> to see live data, or preview the layout with demo data.</p>
+      <button class="load-primary" onclick="document.getElementById('f-input').click()">Load prices.json</button>
+      <input type="file" id="f-input" accept=".json" style="display:none" onchange="handleFile(this)">
+      <button class="load-primary" style="background:#444" onclick="loadDemo()">Preview demo</button>
+      <p class="load-note">Data stays on your device. Nothing is uploaded.</p>
     </div>
   </div>
 </div>
 
 <script>
-// ── CONFIG — update this after uploading prices.json to GitHub ──
-// Paste the raw URL to your prices.json here.
-// In GitHub: open prices.json → click "Raw" → copy the URL
-// It looks like: https://raw.githubusercontent.com/YOUR-USERNAME/mons-price-monitor/main/prices.json
+// ── CONFIG ────────────────────────────────────────────────────
+// Paste your GitHub raw URL here after uploading prices.json
 const PRICES_URL = '';
-// ───────────────────────────────────────────────────────────────
 
-// ── DUMMY DATA ────────────────────────────────────────────────
-const DUMMY = [
-  // Run 1 — 2025-04-14
-  {date:"2025-04-14",name:"Cascade Merino Base Layer Long Sleeve (men's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:79.95,bfeu_disc_pct:27,bz_price:87.96,bz_disc_pct:20,va_price:null,va_disc_pct:null,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Cascade Merino Base Layer Long Sleeve (women's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:79.95,bfeu_disc_pct:27,bz_price:null,bz_disc_pct:null,va_price:87.96,va_disc_pct:20,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Cascade Merino Base Layer 3/4 Legging (men's)",category:"Base layer",range:"rollover",rrp:89.95,bf_price:70.16,bf_disc_pct:22,bfeu_price:71.95,bfeu_disc_pct:20,bz_price:71.96,bz_disc_pct:20,va_price:73.95,va_disc_pct:18,worst_price:70.16,worst_disc_pct:22,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Icon Merino Long Sleeve (men's)",category:"Base layer",range:"new",rrp:89.95,bf_price:62.97,bf_disc_pct:30,bfeu_price:62.97,bfeu_disc_pct:30,bz_price:67.45,bz_disc_pct:25,va_price:64.95,va_disc_pct:28,worst_price:62.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Tarn Merino Long Sleeve (men's)",category:"Base layer",range:"new",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:76.97,bfeu_disc_pct:30,bz_price:82.46,bz_disc_pct:25,va_price:null,va_disc_pct:null,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Bella Merino Long Sleeve Hood (women's)",category:"Base layer",range:"new",rrp:119.95,bf_price:93.56,bf_disc_pct:22,bfeu_price:95.95,bfeu_disc_pct:20,bz_price:null,bz_disc_pct:null,va_price:97.95,va_disc_pct:18,worst_price:93.56,worst_disc_pct:22,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Diversion Merino Wind Jacket (men's)",category:"Outerwear",range:"new",rrp:199.95,bf_price:139.97,bf_disc_pct:30,bfeu_price:139.97,bfeu_disc_pct:30,bz_price:149.96,bz_disc_pct:25,va_price:159.95,va_disc_pct:20,worst_price:139.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Canyon Merino Insulated Hooded Jacket (men's)",category:"Outerwear",range:"rollover",rrp:319.95,bf_price:255.96,bf_disc_pct:20,bfeu_price:255.96,bfeu_disc_pct:20,bz_price:271.96,bz_disc_pct:15,va_price:null,va_disc_pct:null,worst_price:255.96,worst_disc_pct:20,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Cascade Merino Base Layer Legging (men's)",category:"Base layer",range:"rollover",rrp:99.95,bf_price:59.98,bf_disc_pct:40,bfeu_price:62.95,bfeu_disc_pct:37,bz_price:74.97,bz_disc_pct:25,va_price:69.95,va_disc_pct:30,worst_price:59.98,worst_disc_pct:40,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-14",name:"Cascade Merino Base Layer Legging (women's)",category:"Base layer",range:"rollover",rrp:99.95,bf_price:51.98,bf_disc_pct:48,bfeu_price:51.98,bfeu_disc_pct:48,bz_price:64.97,bz_disc_pct:35,va_price:null,va_disc_pct:null,worst_price:51.98,worst_disc_pct:48,worst_retailer:"Bergfreunde DE"},
-  // Run 2 — 2025-04-28
-  {date:"2025-04-28",name:"Cascade Merino Base Layer Long Sleeve (men's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:76.97,bf_disc_pct:30,bfeu_price:79.95,bfeu_disc_pct:27,bz_price:87.96,bz_disc_pct:20,va_price:null,va_disc_pct:null,worst_price:76.97,worst_disc_pct:30,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-28",name:"Cascade Merino Base Layer Long Sleeve (women's)",category:"Base layer",range:"rollover",rrp:109.95,bf_price:71.47,bf_disc_pct:35,bfeu_price:74.95,bfeu_disc_pct:32,bz_price:null,bz_disc_pct:null,va_price:83.96,va_disc_pct:24,worst_price:71.47,worst_disc_pct:35,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-28",name:"Diversion Merino Wind Jacket (men's)",category:"Outerwear",range:"new",rrp:199.95,bf_price:119.97,bf_disc_pct:40,bfeu_price:129.97,bfeu_disc_pct:35,bz_price:139.96,bz_disc_pct:30,va_price:149.95,va_disc_pct:25,worst_price:119.97,worst_disc_pct:40,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-28",name:"Cascade Merino Base Layer Legging (men's)",category:"Base layer",range:"rollover",rrp:99.95,bf_price:44.99,bf_disc_pct:55,bfeu_price:47.95,bfeu_disc_pct:52,bz_price:59.98,bz_disc_pct:40,va_price:52.95,va_disc_pct:47,worst_price:44.99,worst_disc_pct:55,worst_retailer:"Bergfreunde DE"},
-  {date:"2025-04-28",name:"Icon Merino Long Sleeve (men's)",category:"Base layer",range:"new",rrp:89.95,bf_price:57.97,bf_disc_pct:36,bfeu_price:57.97,bfeu_disc_pct:36,bz_price:62.95,bz_disc_pct:30,va_price:60.95,va_disc_pct:32,worst_price:57.97,worst_disc_pct:36,worst_retailer:"Bergfreunde DE"},
+// ── RETAILERS ─────────────────────────────────────────────────
+const RETAILERS = [
+  { key: 'bergfreunde_de', label: 'Bergfreunde DE' },
+  { key: 'bergfreunde_eu', label: 'Bergfreunde EU' },
+  { key: 'bergzeit',       label: 'Bergzeit' },
+  { key: 'varuste',        label: 'Varuste' },
+];
+
+// ── DEMO DATA ─────────────────────────────────────────────────
+function makeDemoRow(name, gender, cat, range, season, bf_de, bf_de_orig, bf_eu, bf_eu_orig, bz, bz_orig, va, va_orig) {
+  const row = { date:'2025-05-15', timestamp:'2025-05-15T09:00:00Z', name, gender, category:cat, range, season };
+  const retailers = [
+    ['bergfreunde_de', bf_de, bf_de_orig],
+    ['bergfreunde_eu', bf_eu, bf_eu_orig],
+    ['bergzeit', bz, bz_orig],
+    ['varuste', va, va_orig],
+  ];
+  let worstDisc = null, worstPrice = null, worstRetailer = null;
+  for (const [key, price, orig] of retailers) {
+    row[key+'_price'] = price;
+    row[key+'_original_price'] = orig;
+    row[key+'_status'] = price == null ? 'not_found' : 'ok';
+    row[key+'_disc_pct'] = (price && orig) ? Math.round((orig-price)/orig*100) : null;
+    row[key+'_match_score'] = price ? 92 : null;
+    if (row[key+'_disc_pct'] && (worstDisc==null||row[key+'_disc_pct']>worstDisc)) {
+      worstDisc=row[key+'_disc_pct']; worstPrice=price; worstRetailer=RETAILERS.find(r=>r.key===key)?.label;
+    }
+  }
+  row.worst_price=worstPrice; row.worst_disc_pct=worstDisc; row.worst_retailer=worstRetailer; row.worst_status='ok';
+  return row;
+}
+const DEMO = [
+  makeDemoRow("Diversion Merino Wind Jacket","mens","Men's Jacket","new","R1-26",139.97,199.95,139.97,199.95,149.96,199.95,null,null),
+  makeDemoRow("Diversion Merino Wind Jacket","womens","Women's Jacket","new","R1-26",139.97,199.95,null,null,null,null,159.95,199.95),
+  makeDemoRow("Icon Merino Long Sleeve","mens","Men's Long Sleeve Top","new","R1-26",62.97,89.95,62.97,89.95,67.45,89.95,64.95,89.95),
+  makeDemoRow("Icon Merino Long Sleeve","womens","Women's Long Sleeve Top","new","R1-26",null,null,null,null,null,null,null,null),
+  makeDemoRow("Tarn Merino Long Sleeve","mens","Men's Bike Jersey","new","R1-26",76.97,109.95,76.97,109.95,82.46,109.95,null,null),
+  makeDemoRow("Cascade Merino Base Layer Long Sleeve","mens","Men's Long Sleeve Top","rollover","R1-26",76.97,109.95,79.95,109.95,87.96,109.95,null,null),
+  makeDemoRow("Cascade Merino Base Layer Long Sleeve","womens","Women's Long Sleeve Top","rollover","R1-26",71.47,109.95,74.95,109.95,null,null,83.96,109.95),
+  makeDemoRow("Canyon Merino Insulated Hooded Jacket","mens","Men's Jacket","rollover","R1-26",255.96,319.95,255.96,319.95,271.96,319.95,null,null),
+  makeDemoRow("Olympus Merino Base Layer Long Sleeve","mens","Men's Long Sleeve Top","rollover","R1-26",null,null,null,null,null,null,null,null),
+  makeDemoRow("Offgrid Merino Fleece Wind Jacket","mens","Men's Mid Layer","eol","R2-25",59.98,199.95,59.98,199.95,74.97,199.95,69.95,199.95),
+  makeDemoRow("Yotei Merino Long Sleeve","mens","Men's Long Sleeve Top","eol","R2-25",44.99,109.95,44.99,109.95,59.98,109.95,null,null),
 ];
 
 // ── STATE ─────────────────────────────────────────────────────
-let allData = [];
-let isDummy = false;
-let filterSite = 'all';
-let filterRange = 'all';
-let searchTerm = '';
-let sortCol = 'worst_disc_pct';
-let sortDir = -1;
+let allData=[], isDummy=false, siteFilt='all', rangeFilt='all', search='', sortCol='worst_disc_pct', sortDir=-1;
 
-// ── FILE LOAD ─────────────────────────────────────────────────
-// ── DATA LOADING ──────────────────────────────────────────────
+// ── LOAD ──────────────────────────────────────────────────────
 async function autoLoad() {
-  // Try GitHub URL first if configured
   if (PRICES_URL) {
     try {
-      const res = await fetch(PRICES_URL + '?t=' + Date.now()); // bust cache
+      const res = await fetch(PRICES_URL+'?t='+Date.now());
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length) {
-          allData = data; isDummy = false; render(); return;
-        }
+        if (Array.isArray(data)&&data.length) { allData=data; isDummy=false; render(); return; }
       }
     } catch(e) {}
   }
-  // No URL configured or fetch failed — show load screen
-  showLoadScreen();
+  showLoad();
 }
-
-function showLoadScreen() {
-  document.getElementById('app').innerHTML = `
-    <div class="load-screen">
-      <div class="load-box">
-        <h2>Price Monitor</h2>
-        <p>Load <strong>prices.json</strong> from your computer, or preview with dummy data.</p>
-        <button class="load-primary" onclick="document.getElementById('file-input').click()">Load prices.json</button>
-        <input type="file" id="file-input" accept=".json" style="display:none" onchange="handleFile(this)">
-        <br><br>
-        <button class="load-primary" style="background:#555" onclick="loadDummy()">Preview with dummy data</button>
-        <p class="load-note">File stays on your computer. Nothing is uploaded.</p>
-      </div>
-    </div>`;
+function showLoad() {
+  document.getElementById('app').innerHTML=`<div class="load-screen"><div class="load-box">
+    <h2>Price Monitor</h2>
+    <p>Load <strong>prices.json</strong> from your scraper folder, or preview with demo data.</p>
+    <button class="load-primary" onclick="document.getElementById('f-input2').click()">Load prices.json</button>
+    <input type="file" id="f-input2" accept=".json" style="display:none" onchange="handleFile(this)">
+    <button class="load-primary" style="background:#444" onclick="loadDemo()">Preview demo</button>
+    <p class="load-note">Data stays on your device. Nothing is uploaded.</p>
+  </div></div>`;
 }
-
 function handleFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data) || !data.length) { alert('prices.json is empty. Run node scraper.js first.'); return; }
-      allData = data; isDummy = false; render();
-    } catch { alert('Could not read that file. Make sure you selected prices.json.'); }
-  };
-  reader.readAsText(file);
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{ try { const d=JSON.parse(e.target.result); if(!Array.isArray(d)||!d.length){alert('File is empty. Run node scraper.js first.');return;} allData=d; isDummy=false; render(); } catch{alert('Could not read file.');} };
+  r.readAsText(file);
 }
-function loadDummy() { allData = DUMMY; isDummy = true; render(); }
+function loadDemo(){allData=DEMO;isDummy=true;render();}
 
 // ── HELPERS ───────────────────────────────────────────────────
-function eur(v) { return v != null ? '€'+parseFloat(v).toFixed(2) : '—'; }
-function latestByProduct(rows) {
-  const map = {};
-  for (const r of rows) { if (!map[r.name] || r.date > map[r.name].date) map[r.name] = r; }
+function eur(v){return v!=null?'€'+parseFloat(v).toFixed(2):'—'}
+function latestByKey(rows){
+  const map={};
+  for(const r of rows){const k=r.name+'||'+r.gender; if(!map[k]||r.date>map[k].date)map[k]=r;}
   return Object.values(map);
 }
-function getDates(rows) { return [...new Set(rows.map(r => r.date))].sort(); }
-function avg(arr) { const f=arr.filter(v=>v!=null&&!isNaN(v)); return f.length ? Math.round(f.reduce((a,b)=>a+b,0)/f.length) : null; }
+function getDates(rows){return[...new Set(rows.map(r=>r.date))].sort()}
+function avg(arr){const f=arr.filter(v=>v!=null&&!isNaN(v));return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null}
 
-function discBadge(d) {
-  if (d==null) return '<span class="badge b-neutral">N/A</span>';
-  if (d>=30)   return `<span class="badge b-critical">-${d}%</span>`;
-  if (d>=20)   return `<span class="badge b-warning">-${d}%</span>`;
-  if (d>0)     return `<span class="badge b-ok">-${d}%</span>`;
-  return '<span class="badge b-ok">RRP</span>';
+function discBadge(d, status) {
+  if(status==='not_found') return '<span class="badge b-notfound">Not found</span>';
+  if(status?.startsWith('needs_review')) return '<span class="badge b-review">⚠ Review</span>';
+  if(d==null) return '<span class="badge b-notfound">—</span>';
+  if(d>=30) return`<span class="badge b-critical">-${d}%</span>`;
+  if(d>=20) return`<span class="badge b-warning">-${d}%</span>`;
+  if(d>0)   return`<span class="badge b-ok">-${d}%</span>`;
+  return '<span class="badge b-ok">Full price</span>';
 }
-function rangeBadge(r) {
-  if (r==='new')      return '<span class="badge b-current"><span class="range-dot dot-current"></span>New</span>';
-  if (r==='rollover') return '<span class="badge b-rollover"><span class="range-dot dot-rollover"></span>Rollover</span>';
-  if (r==='eol')      return '<span class="badge b-archive"><span class="range-dot dot-archive"></span>EOL</span>';
-  return '<span class="badge b-archive"><span class="range-dot dot-archive"></span>EOL</span>';
+function rangeBadge(r){
+  if(r==='new')      return'<span class="badge b-new"><span class="dot dot-new"></span>New</span>';
+  if(r==='rollover') return'<span class="badge b-rollover"><span class="dot dot-roll"></span>Rollover</span>';
+  return'<span class="badge b-eol"><span class="dot dot-eol"></span>EOL</span>';
 }
-function retailerBadge(name) {
-  const map = {'Bergfreunde DE':'#b83232','Bergfreunde EU':'#6b3fa0','Bergzeit':'#1a5296','Varuste':'#1e6e42'};
-  const col = map[name] || '#6b6762';
-  return `<span style="font-family:var(--font-mono);font-size:10px;color:${col};font-weight:500">${name}</span>`;
+function retailerCol(name){
+  const cols={'Bergfreunde DE':'#b83232','Bergfreunde EU':'#6b3fa0','Bergzeit':'#1a5296','Varuste':'#1e6e42'};
+  return`<span style="font-family:var(--mono);font-size:10px;font-weight:500;color:${cols[name]||'#666'}">${name}</span>`;
 }
 
-// Detect sitewide sale: if 70%+ of a retailer's SKUs are discounted 15%+
-function detectSiteSales(latest) {
-  const retailers = [
-    {key:'bf', label:'Bergfreunde DE', disc: r=>r.bf_disc_pct},
-    {key:'bfeu', label:'Bergfreunde EU', disc: r=>r.bfeu_disc_pct},
-    {key:'bz', label:'Bergzeit', disc: r=>r.bz_disc_pct},
-    {key:'va', label:'Varuste', disc: r=>r.va_disc_pct},
-  ];
-  const alerts = [];
-  for (const ret of retailers) {
-    const withData = latest.filter(r => ret.disc(r) != null);
-    if (withData.length < 3) continue;
-    const discounted = withData.filter(r => ret.disc(r) >= 15);
-    const ratio = discounted.length / withData.length;
-    if (ratio >= 0.7) {
-      const avgDisc = avg(discounted.map(r => ret.disc(r)));
-      alerts.push({label: ret.label, ratio: Math.round(ratio*100), avg: avgDisc});
+// ── SITEWIDE SALE DETECTION ───────────────────────────────────
+function detectSales(latest){
+  const alerts=[];
+  for(const ret of RETAILERS){
+    const withData=latest.filter(r=>r[ret.key+'_status']==='ok'&&r[ret.key+'_disc_pct']!=null);
+    if(withData.length<4) continue;
+    const disc=withData.filter(r=>r[ret.key+'_disc_pct']>=15);
+    if(disc.length/withData.length>=0.7){
+      alerts.push({label:ret.label,ratio:Math.round(disc.length/withData.length*100),avg:avg(disc.map(r=>r[ret.key+'_disc_pct']))});
     }
   }
   return alerts;
 }
 
-// Expand latest rows into per-retailer rows for filtering
-function expandToRetailerRows(latest) {
-  const out = [];
-  for (const r of latest) {
-    if (r.bf_price != null)   out.push({...r, _retailer:'Bergfreunde DE', _price:r.bf_price, _disc:r.bf_disc_pct});
-    if (r.bfeu_price != null) out.push({...r, _retailer:'Bergfreunde EU', _price:r.bfeu_price, _disc:r.bfeu_disc_pct});
-    if (r.bz_price != null)   out.push({...r, _retailer:'Bergzeit', _price:r.bz_price, _disc:r.bz_disc_pct});
-    if (r.va_price != null)   out.push({...r, _retailer:'Varuste', _price:r.va_price, _disc:r.va_disc_pct});
+// ── EXPAND TO RETAILER ROWS FOR TABLE ─────────────────────────
+function expandRows(latest){
+  const out=[];
+  for(const r of latest){
+    for(const ret of RETAILERS){
+      out.push({...r, _ret:ret.label, _retKey:ret.key, _price:r[ret.key+'_price'], _orig:r[ret.key+'_original_price'], _disc:r[ret.key+'_disc_pct'], _status:r[ret.key+'_status']||'not_found'});
+    }
   }
   return out;
 }
 
-function getTableRows() {
-  let rows = expandToRetailerRows(latestByProduct(allData));
-  if (filterSite !== 'all') rows = rows.filter(r => r._retailer === filterSite);
-  if (filterRange !== 'all') rows = rows.filter(r => r.range === filterRange);
-  if (searchTerm) rows = rows.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  return rows.sort((a,b) => {
-    const av = a[sortCol]??a._disc??-999, bv = b[sortCol]??b._disc??-999;
-    return typeof av==='string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
+function getTableRows(){
+  let rows=expandRows(latestByKey(allData));
+  if(siteFilt!=='all') rows=rows.filter(r=>r._ret===siteFilt);
+  if(rangeFilt!=='all') rows=rows.filter(r=>r.range===rangeFilt);
+  if(search) rows=rows.filter(r=>r.name.toLowerCase().includes(search.toLowerCase())||r.gender.toLowerCase().includes(search.toLowerCase()));
+  return rows.sort((a,b)=>{
+    const av=a[sortCol]??a._disc??-9999, bv=b[sortCol]??b._disc??-9999;
+    return typeof av==='string'?av.localeCompare(bv)*sortDir:(av-bv)*sortDir;
   });
 }
 
 // ── RENDER ────────────────────────────────────────────────────
-function render() {
-  const app = document.getElementById('app');
-  const dates = getDates(allData);
-  const latest = latestByProduct(allData);
-  const saleAlerts = detectSiteSales(latest);
+function render(){
+  const app=document.getElementById('app');
+  const dates=getDates(allData);
+  const latest=latestByKey(allData);
+  const sales=detectSales(latest);
 
-  // Stats
-  const newRows      = latest.filter(r=>r.range==='new');
-  const rolloverRows = latest.filter(r=>r.range==='rollover');
-  const eolRows      = latest.filter(r=>r.range==='eol');
+  const newRows=latest.filter(r=>r.range==='new');
+  const rollRows=latest.filter(r=>r.range==='rollover');
+  const eolRows=latest.filter(r=>r.range==='eol');
+  const critNew=newRows.filter(r=>r.worst_disc_pct>=20&&r.worst_status==='ok').length;
+  const critRoll=rollRows.filter(r=>r.worst_disc_pct>=20&&r.worst_status==='ok').length;
+  const eolDisc=eolRows.filter(r=>r.worst_disc_pct>=20&&r.worst_status==='ok').length;
+  const reviewCount=latest.filter(r=>RETAILERS.some(ret=>r[ret.key+'_status']?.startsWith('needs_review'))).length;
 
-  // Critical = new or rollover discounted 20%+
-  const critNew      = newRows.filter(r=>r.worst_disc_pct>=20).length;
-  const critRollover = rolloverRows.filter(r=>r.worst_disc_pct>=20).length;
-  const eolDisc      = eolRows.filter(r=>r.worst_disc_pct>=20).length;
-  const totalSKUs    = latest.length;
+  document.getElementById('hdr-meta').textContent=dates.length?'Last run: '+dates[dates.length-1]:'Demo data';
 
-  document.getElementById('last-run-label').textContent = dates.length ? 'Last run: '+dates[dates.length-1] : 'Demo data';
-
-  // Warning table rows — new + rollover 20%+ only
-  const warnRows = expandToRetailerRows(latest)
-    .filter(r => (r.range==='new'||r.range==='rollover') && r._disc>=20)
+  const warnRows=expandRows(latest)
+    .filter(r=>(r.range==='new'||r.range==='rollover')&&r._disc>=20&&r._status==='ok')
     .sort((a,b)=>b._disc-a._disc);
 
-  app.innerHTML = `
-    ${isDummy ? `<div class="demo-banner"><span class="demo-badge">DEMO</span>Showing dummy data. Load prices.json to see live data.</div>` : ''}
+  const tableRows=getTableRows();
 
-    ${saleAlerts.length ? `<div class="sale-alerts">
-      ${saleAlerts.map(a=>`<div class="sale-alert critical">
-        <span class="sale-icon">⚠</span>
-        <span><strong>Sitewide sale detected — ${a.label}.</strong> ${a.ratio}% of tracked SKUs discounted, avg -${a.avg}% vs RRP. Likely active promotional event.</span>
-      </div>`).join('')}
-    </div>` : ''}
+  app.innerHTML=`
+    ${isDummy?`<div class="demo-banner"><span class="demo-tag">Demo</span>Showing sample data. Load prices.json to see live data.</div>`:''}
 
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-stripe stripe-red"></div>
-        <div class="stat-label">New range — discounted</div>
-        <div class="stat-val col-red">${critNew}</div>
-        <div class="stat-sub">SKUs 20%+ below RRP</div>
+    ${sales.length?`<div class="alerts">${sales.map(s=>`<div class="alert danger"><span class="alert-icon">⚠</span><span><strong>Sitewide sale detected — ${s.label}.</strong> ${s.ratio}% of tracked SKUs discounted, average -${s.avg}% vs original price.</span></div>`).join('')}</div>`:''}
+
+    ${reviewCount>0?`<div class="alerts"><div class="alert warn"><span class="alert-icon">?</span><span><strong>${reviewCount} SKU${reviewCount>1?'s':''} flagged for review.</strong> Discounts exceeded 60% — may be data errors. Check raw_extracted.json from latest scraper run.</span></div></div>`:''}
+
+    <div class="stats">
+      <div class="stat"><div class="stat-stripe" style="background:var(--red)"></div>
+        <div class="stat-label">New — discounted</div>
+        <div class="stat-val c-red">${critNew}</div>
+        <div class="stat-sub">SKUs 20%+ below original</div>
       </div>
-      <div class="stat-card"><div class="stat-stripe stripe-amber"></div>
+      <div class="stat"><div class="stat-stripe" style="background:var(--amber)"></div>
         <div class="stat-label">Rollover — discounted</div>
-        <div class="stat-val col-amber">${critRollover}</div>
-        <div class="stat-sub">SKUs 20%+ below RRP</div>
+        <div class="stat-val c-amber">${critRoll}</div>
+        <div class="stat-sub">SKUs 20%+ below original</div>
       </div>
-      <div class="stat-card"><div class="stat-stripe stripe-ghost"></div>
+      <div class="stat"><div class="stat-stripe" style="background:var(--ghost)"></div>
         <div class="stat-label">EOL — discounted</div>
-        <div class="stat-val" style="color:var(--ghost)">${eolDisc}</div>
+        <div class="stat-val c-ghost">${eolDisc}</div>
         <div class="stat-sub">end of line activity</div>
       </div>
-      <div class="stat-card"><div class="stat-stripe stripe-blue"></div>
+      <div class="stat"><div class="stat-stripe" style="background:var(--blue)"></div>
         <div class="stat-label">New SKUs tracked</div>
-        <div class="stat-val col-blue">${newRows.length}</div>
-        <div class="stat-sub">of ${totalSKUs} total</div>
+        <div class="stat-val c-blue">${newRows.length}</div>
+        <div class="stat-sub">of ${latest.length} total</div>
       </div>
-      <div class="stat-card"><div class="stat-stripe stripe-amber"></div>
-        <div class="stat-label">Rollover SKUs tracked</div>
-        <div class="stat-val col-amber">${rolloverRows.length}</div>
-        <div class="stat-sub">of ${totalSKUs} total</div>
+      <div class="stat"><div class="stat-stripe" style="background:var(--amber)"></div>
+        <div class="stat-label">Rollover tracked</div>
+        <div class="stat-val c-amber">${rollRows.length}</div>
+        <div class="stat-sub">of ${latest.length} total</div>
       </div>
-      <div class="stat-card"><div class="stat-stripe stripe-ghost"></div>
+      <div class="stat"><div class="stat-stripe" style="background:var(--ghost)"></div>
         <div class="stat-label">Runs on file</div>
         <div class="stat-val">${dates.length}</div>
-        <div class="stat-sub">${totalSKUs} SKUs tracked</div>
+        <div class="stat-sub">${latest.length} SKUs</div>
       </div>
     </div>
 
-    <div class="section-head">
-      <span class="section-label">⚠ Early warning — new &amp; rollover SKUs discounted 20%+</span>
-    </div>
-    <div class="warn-table-wrap">
+    <div class="sec-head"><span class="sec-label">⚠ Early warning — new &amp; rollover 20%+ discounted</span></div>
+    <div class="warn-wrap">
       ${warnRows.length===0
-        ? `<div class="no-data">No new or rollover SKUs discounted 20%+ right now.</div>`
-        : `<table class="warn-table">
-          <thead><tr>
-            <th>Product</th><th>Range</th><th>Retailer</th><th>RRP</th><th>Live price</th><th>Gap vs RRP</th>
-          </tr></thead>
+        ?'<div class="empty">No new or rollover SKUs discounted 20%+ right now.</div>'
+        :`<table class="warn-tbl">
+          <thead><tr><th>Product</th><th>Range</th><th>Retailer</th><th>Live price</th><th>Was</th><th>Discount</th></tr></thead>
           <tbody>${warnRows.map(r=>`<tr>
-            <td style="font-weight:500">${r.name}</td>
+            <td style="font-weight:500">${r.name} <span style="color:var(--ghost);font-size:11px">(${r.gender})</span></td>
             <td>${rangeBadge(r.range)}</td>
-            <td>${retailerBadge(r._retailer)}</td>
-            <td class="td-dim">${eur(r.rrp)}</td>
+            <td>${retailerCol(r._ret)}</td>
             <td class="td-mono">${eur(r._price)}</td>
-            <td>${discBadge(r._disc)}</td>
+            <td class="td-dim">${eur(r._orig)}</td>
+            <td>${discBadge(r._disc, r._status)}</td>
           </tr>`).join('')}</tbody>
         </table>`}
     </div>
 
-    <div class="section-head" style="margin-top:28px">
-      <span class="section-label">All prices</span>
-      <div class="section-actions">
-        <button class="btn-sm" onclick="document.getElementById('file-reload').click()">Load new file</button>
+    <div class="sec-head" style="margin-top:32px">
+      <span class="sec-label">All prices — ${tableRows.length} rows</span>
+      <div class="sec-actions">
+        <button class="btn-link" onclick="document.getElementById('f-reload').click()">Load new file</button>
         <button class="btn" onclick="exportCSV()">Export CSV</button>
       </div>
     </div>
 
-    <div class="filter-row">
-      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;margin-right:2px">Site</span>
-      ${['all','Bergfreunde DE','Bergfreunde EU','Bergzeit','Varuste'].map(s=>`<button class="pill ${filterSite===s?'active':''}" onclick="setSite('${s}')">${s==='all'?'All sites':s}</button>`).join('')}
-      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;margin-left:8px;margin-right:2px">Range</span>
-      ${['all','new','rollover','eol'].map(r=>`<button class="pill ${filterRange===r?'active':''}" onclick="setRange('${r}')">${r==='all'?'All':r==='eol'?'EOL':r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('')}
-      <input class="search-box" type="text" placeholder="Search products…" value="${searchTerm}" oninput="setSearch(this.value)">
+    <div class="filters">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;margin-right:2px">Site</span>
+      ${['all',...RETAILERS.map(r=>r.label)].map(s=>`<button class="pill ${siteFilt===s||siteFilt===(RETAILERS.find(r=>r.label===s)?.key||s)?'on':''}" onclick="setSite('${s}')">${s==='all'?'All sites':s}</button>`).join('')}
+      <span style="font-family:var(--mono);font-size:10px;color:var(--ghost);text-transform:uppercase;letter-spacing:.06em;margin-left:8px;margin-right:2px">Range</span>
+      ${['all','new','rollover','eol'].map(r=>`<button class="pill ${rangeFilt===r?'on':''}" onclick="setRange('${r}')">${r==='all'?'All':r==='eol'?'EOL':r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('')}
+      <input class="search" type="text" placeholder="Search products…" value="${search}" oninput="setSearch(this.value)">
     </div>
 
-    <div class="table-wrap">
+    <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th onclick="setSortCol('name')">Product ${sortCol==='name'?(sortDir===1?'↑':'↓'):'↕'}</th>
-          <th onclick="setSortCol('range')">Range ${sortCol==='range'?(sortDir===1?'↑':'↓'):'↕'}</th>
-          <th onclick="setSortCol('_retailer')">Retailer ${sortCol==='_retailer'?(sortDir===1?'↑':'↓'):'↕'}</th>
-          <th onclick="setSortCol('rrp')">EU RRP ${sortCol==='rrp'?(sortDir===1?'↑':'↓'):'↕'}</th>
-          <th onclick="setSortCol('_price')">Live price ${sortCol==='_price'?(sortDir===1?'↑':'↓'):'↕'}</th>
-          <th onclick="setSortCol('_disc')">Gap vs RRP ${sortCol==='_disc'?(sortDir===1?'↑':'↓'):'↕'}</th>
-          <th onclick="setSortCol('date')">Checked ${sortCol==='date'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('name')">Product ${sortCol==='name'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('range')">Range ${sortCol==='range'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('_ret')">Retailer ${sortCol==='_ret'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('_price')">Live price ${sortCol==='_price'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('_orig')">Was ${sortCol==='_orig'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('_disc')">Discount ${sortCol==='_disc'?(sortDir===1?'↑':'↓'):'↕'}</th>
+          <th onclick="doSort('date')">Checked ${sortCol==='date'?(sortDir===1?'↑':'↓'):'↕'}</th>
         </tr></thead>
-        <tbody id="tbody">${renderTableBody(getTableRows())}</tbody>
+        <tbody>${renderTableBody(tableRows)}</tbody>
       </table>
-    </div>
-  `;
+    </div>`;
 }
 
-function renderTableBody(rows) {
-  if (!rows.length) return `<tr><td colspan="7" class="no-data">No results</td></tr>`;
+function renderTableBody(rows){
+  if(!rows.length) return'<tr><td colspan="7" class="empty">No results</td></tr>';
   return rows.map(r=>`<tr>
-    <td class="td-name">${r.name}</td>
-    <td>${rangeBadge(r.range||'archive')}</td>
-    <td>${retailerBadge(r._retailer)}</td>
-    <td class="td-dim">${eur(r.rrp)}</td>
-    <td class="td-mono">${eur(r._price)}</td>
-    <td>${discBadge(r._disc)}</td>
+    <td class="td-name">${r.name} <span style="color:var(--ghost);font-size:11px;font-family:var(--mono)">(${r.gender})</span></td>
+    <td>${rangeBadge(r.range)}</td>
+    <td>${retailerCol(r._ret)}</td>
+    <td class="td-mono">${r._price!=null?eur(r._price):'<span style="color:var(--ghost)">—</span>'}</td>
+    <td class="td-dim">${r._orig!=null?eur(r._orig):'<span style="color:var(--ghost)">—</span>'}</td>
+    <td>${discBadge(r._disc, r._status)}</td>
     <td class="td-ghost">${r.date}</td>
   </tr>`).join('');
 }
 
-function setSite(s){filterSite=s;updateTable()}
-function setRange(r){filterRange=r;updateTable()}
-function setSearch(v){searchTerm=v;updateTable()}
-function setSortCol(c){sortCol===c?sortDir*=-1:(sortCol=c,sortDir=-1);render()}
+function setSite(s){ siteFilt=s; render(); }
+function setRange(r){ rangeFilt=r; render(); }
+function setSearch(v){ search=v; const tb=document.querySelector('tbody'); if(tb) tb.innerHTML=renderTableBody(getTableRows()); }
+function doSort(c){ sortCol===c?sortDir*=-1:(sortCol=c,sortDir=-1); render(); }
 
-function updateTable() {
-  // Rebuild just filter pills and table without full re-render
-  render();
-}
-
-function exportCSV() {
-  const rows = getTableRows();
-  if (!rows.length) return;
-  const header = 'Date,Product,Category,Range,Retailer,EU RRP,Live Price,Discount %';
-  const lines = rows.map(r=>[r.date,'"'+r.name+'"',r.category,r.range||'',r._retailer,r.rrp,r._price??'',r._disc!=null?'-'+r._disc+'%':''].join(','));
-  const a = document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([header,...lines].join('\n'));
+function exportCSV(){
+  const rows=getTableRows(); if(!rows.length) return;
+  const h='Date,Product,Gender,Range,Retailer,Live Price,Was,Discount %,Status';
+  const lines=rows.map(r=>[r.date,'"'+r.name+'"',r.gender,r.range,r._ret,r._price??'',r._orig??'',r._disc!=null?'-'+r._disc+'%':'',r._status].join(','));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([h,...lines].join('\n'));
   a.download='mons-prices-'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
 
-// Start
 autoLoad();
 </script>
 </body>
